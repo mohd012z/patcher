@@ -11,8 +11,8 @@ android {
         applicationId = "com.msa.patcher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 80
-        versionName = "8.0"
+        versionCode = 81
+        versionName = "8.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }
@@ -33,6 +33,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.8.5")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
     implementation("androidx.recyclerview:recyclerview:1.3.2")

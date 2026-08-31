@@ -1,18 +1,31 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Evidence" android:textColor="@color/msa_text" android:textSize="22sp" android:textStyle="bold"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Correlated findings with false-positive rejection." android:textColor="@color/msa_muted"/>
-        <com.google.android.material.chip.ChipGroup android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp">
-            <com.google.android.material.chip.Chip android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Confirmed"/>
-            <com.google.android.material.chip.Chip android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suspected"/>
-            <com.google.android.material.chip.Chip android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rejected"/>
-            <com.google.android.material.chip.Chip android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Raw"/>
-        </com.google.android.material.chip.ChipGroup>
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No scan evidence yet" android:textColor="@color/msa_text" android:textStyle="bold"/>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Run Quick Scan or Deep Scan from Home." android:textColor="@color/msa_muted" android:layout_marginTop="4dp"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Evidence"
+            android:textColor="@color/msa_text"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Read-only static findings. Runtime behaviour is not inferred."
+            android:textColor="@color/msa_muted" />
+        <TextView
+            android:id="@+id/evidenceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="No scan evidence yet."
+            android:textColor="@color/msa_text"
+            android:textIsSelectable="true"
+            android:lineSpacingExtra="5dp" />
     </LinearLayout>
 </ScrollView>
