@@ -1,4 +1,3 @@
-git commit -m "Add V8.5.1 pinch zoom and per-view memory"
 package com.msa.patcher.modify
 
 import android.content.ClipData
@@ -50,6 +49,7 @@ import com.msa.patcher.modify.settings.WorkspaceUiSettings
 import com.msa.patcher.modify.settings.WorkspaceUiSettingsStore
 import com.msa.patcher.modify.settings.WorkspaceViewModeSetting
 import com.msa.patcher.modify.ui.CommandHubAction
+import com.msa.patcher.modify.ui.BottomToolbarController
 import com.msa.patcher.modify.ui.CommandHubController
 import com.msa.patcher.modify.ui.PerViewZoomController
 import com.msa.patcher.modify.ui.ZoomViewKey
@@ -105,10 +105,12 @@ class ModifyFragment : Fragment() {
     private lateinit var assistantAnswer: TextView
     private lateinit var commandHubButton: Button
     private lateinit var viewModeButton: Button
+    private lateinit var bottomToolbar: LinearLayout
     private lateinit var splitSnapshot: TextView
     private lateinit var splitHost: LinearLayout
     private lateinit var uiSettingsStore: WorkspaceUiSettingsStore
     private val commandHubController = CommandHubController()
+    private val bottomToolbarController = BottomToolbarController()
     private val workspaceViewController = WorkspaceViewController()
     private val zoomController = PerViewZoomController()
     private val zoomBaseSp = mutableMapOf<ZoomViewKey, Float>()
@@ -508,86 +510,66 @@ class ModifyFragment : Fragment() {
         rememberZoomPerView = settings.rememberZoomPerView
 
         val root = view as? FrameLayout ?: return
-        commandHubButton = Button(requireContext()).apply {
-            text = "\u26A1"
-            contentDescription = "Open Command Hub"
-            textSize = (20f * settings.uiScalePercent / 100f).coerceIn(16f, 24f)
-            minWidth = 0
-            minHeight = 0
-            setPadding(0, 0, 0, 0)
-            elevation = dp(8).toFloat()
-        }
-        val size = dp(
-            when (settings.buttonSize) {
-                ButtonSize.SMALL -> 50
-                ButtonSize.MEDIUM -> 56
-                ButtonSize.LARGE -> 64
-            }
-        )
-        root.addView(
-            commandHubButton,
-            FrameLayout.LayoutParams(size, size, Gravity.END or Gravity.BOTTOM).apply {
-                marginEnd = dp(12)
-                bottomMargin = dp(16)
-            }
-        )
 
         installSplitHost(settings)
 
         viewModeButton = Button(requireContext()).apply {
-            text = "View"
+            text = "Focus"
             contentDescription = "Change workspace view mode"
             textSize = (11f * settings.uiScalePercent / 100f).coerceIn(10f, 14f)
             minWidth = 0
             minHeight = 0
-            setPadding(dp(6), 0, dp(6), 0)
-            elevation = dp(7).toFloat()
+            setPadding(dp(10), 0, dp(10), 0)
         }
+
+        commandHubButton = Button(requireContext()).apply {
+            text = bottomToolbarController.commandHubLabel()
+            contentDescription = "Open Command Hub"
+            textSize = (11f * settings.uiScalePercent / 100f).coerceIn(10f, 14f)
+            minWidth = 0
+            minHeight = 0
+            setPadding(dp(10), 0, dp(10), 0)
+        }
+
+        bottomToolbar = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+            elevation = dp(8).toFloat()
+            addView(
+                viewModeButton,
+                LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+                    marginEnd = dp(4)
+                }
+            )
+            addView(
+                commandHubButton,
+                LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+                    marginStart = dp(4)
+                }
+            )
+        }
+
         root.addView(
-            viewModeButton,
-            FrameLayout.LayoutParams(dp(58), dp(38), Gravity.END or Gravity.BOTTOM).apply {
-                marginEnd = dp(8)
-                bottomMargin = dp(78)
-            }
+            bottomToolbar,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                dp(50),
+                Gravity.BOTTOM
+            )
         )
+
+        view.findViewById<View>(R.id.modifyMainScroll)?.apply {
+            setPadding(paddingLeft, paddingTop, paddingRight, dp(58))
+            clipToPadding = false
+        }
 
         currentViewMode = settings.defaultViewMode.toRuntimeViewMode()
     }
 
     private fun bindCommandHub() {
         if (!::commandHubButton.isInitialized) return
-
-        var downX = 0f
-        var downY = 0f
-        var startTx = 0f
-        var startTy = 0f
-        var moved = false
-
-        commandHubButton.setOnTouchListener { v, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    downX = event.rawX
-                    downY = event.rawY
-                    startTx = v.translationX
-                    startTy = v.translationY
-                    moved = false
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val dx = event.rawX - downX
-                    val dy = event.rawY - downY
-                    if (kotlin.math.abs(dx) > dp(4) || kotlin.math.abs(dy) > dp(4)) moved = true
-                    v.translationX = startTx + dx
-                    v.translationY = startTy + dy
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    if (!moved) showCommandHub()
-                    true
-                }
-                else -> false
-            }
-        }
+        commandHubButton.setOnClickListener { showCommandHub() }
     }
 
     private fun installSplitHost(settings: WorkspaceUiSettings) {
@@ -679,11 +661,7 @@ class ModifyFragment : Fragment() {
 
         if (state.showSnapshot) renderLoadedSnapshot()
 
-        viewModeButton.text = when (mode) {
-            WorkspaceViewMode.FOCUS -> "Focus"
-            WorkspaceViewMode.SPLIT -> "Split"
-            WorkspaceViewMode.INSPECT -> "Inspect"
-        }
+        viewModeButton.text = bottomToolbarController.viewLabel(mode)
         viewModeButton.contentDescription = "Workspace view: ${state.label}"
 
         if (persist) {
