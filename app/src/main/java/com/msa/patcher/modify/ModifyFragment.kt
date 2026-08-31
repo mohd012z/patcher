@@ -589,7 +589,7 @@ class ModifyFragment : Fragment() {
             textSize = (settings.editorFontSp * settings.uiScalePercent / 100f).coerceIn(9f, 24f)
             setTextColor(textEditor.currentTextColor)
             setPadding(dp(8), dp(8), dp(8), dp(8))
-            isTextSelectable = true
+            setTextIsSelectable(true)
             setHorizontallyScrolling(false)
             visibility = View.GONE
         }
