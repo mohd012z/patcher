@@ -44,8 +44,11 @@ import com.msa.patcher.modify.settings.ButtonSize
 import com.msa.patcher.modify.settings.SharedPreferencesSettingsBackend
 import com.msa.patcher.modify.settings.WorkspaceUiSettings
 import com.msa.patcher.modify.settings.WorkspaceUiSettingsStore
+import com.msa.patcher.modify.settings.WorkspaceViewModeSetting
 import com.msa.patcher.modify.ui.CommandHubAction
 import com.msa.patcher.modify.ui.CommandHubController
+import com.msa.patcher.modify.ui.WorkspaceViewController
+import com.msa.patcher.modify.ui.WorkspaceViewMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -95,8 +98,15 @@ class ModifyFragment : Fragment() {
     private lateinit var assistantQuestion: EditText
     private lateinit var assistantAnswer: TextView
     private lateinit var commandHubButton: Button
+    private lateinit var viewModeButton: Button
+    private lateinit var splitSnapshot: TextView
+    private lateinit var splitHost: LinearLayout
     private lateinit var uiSettingsStore: WorkspaceUiSettingsStore
     private val commandHubController = CommandHubController()
+    private val workspaceViewController = WorkspaceViewController()
+    private var currentViewMode = WorkspaceViewMode.FOCUS
+    private var loadedSnapshotText: String = ""
+    private var loadedSnapshotPath: String? = null
 
     private val panels = linkedMapOf<WorkspaceSection, View>()
 
@@ -152,6 +162,7 @@ class ModifyFragment : Fragment() {
         bindBuildActions(view)
         bindAssistant(view)
         bindCommandHub()
+        bindViewMode()
         bindHelpAndSuggestions(view)
 
         sourceUri = homeVm.selectedUri.value
@@ -255,12 +266,22 @@ class ModifyFragment : Fragment() {
                     ?: error("Entry not found.")
                 if (entry.textEditable) {
                     val text = requireEngine().readText(path)
-                    withContext(Dispatchers.Main) { textEditor.setText(text) }
+                    withContext(Dispatchers.Main) {
+                        textEditor.setText(text)
+                        loadedSnapshotText = text
+                        loadedSnapshotPath = path
+                        renderLoadedSnapshot()
+                    }
                     "Loaded editable plaintext: $path"
                 } else {
                     val bytes = requireEngine().readEntryBytes(path)
                     val message = if (bytes == null) "Preview unavailable or entry exceeds preview limit." else "Read-only/binary entry: $path (${bytes.size} bytes). Use Analyze/Search for static evidence."
-                    withContext(Dispatchers.Main) { textEditor.setText("") }
+                    withContext(Dispatchers.Main) {
+                        textEditor.setText("")
+                        loadedSnapshotText = ""
+                        loadedSnapshotPath = path
+                        renderLoadedSnapshot()
+                    }
                     message
                 }
             }
@@ -475,7 +496,7 @@ class ModifyFragment : Fragment() {
 
         val root = view as? FrameLayout ?: return
         commandHubButton = Button(requireContext()).apply {
-            text = "âš¡"
+            text = "\u26A1"
             contentDescription = "Open Command Hub"
             textSize = (20f * settings.uiScalePercent / 100f).coerceIn(16f, 24f)
             minWidth = 0
@@ -497,6 +518,27 @@ class ModifyFragment : Fragment() {
                 bottomMargin = dp(16)
             }
         )
+
+        installSplitHost(settings)
+
+        viewModeButton = Button(requireContext()).apply {
+            text = "View"
+            contentDescription = "Change workspace view mode"
+            textSize = (11f * settings.uiScalePercent / 100f).coerceIn(10f, 14f)
+            minWidth = 0
+            minHeight = 0
+            setPadding(dp(6), 0, dp(6), 0)
+            elevation = dp(7).toFloat()
+        }
+        root.addView(
+            viewModeButton,
+            FrameLayout.LayoutParams(dp(58), dp(38), Gravity.END or Gravity.BOTTOM).apply {
+                marginEnd = dp(8)
+                bottomMargin = dp(78)
+            }
+        )
+
+        currentViewMode = settings.defaultViewMode.toRuntimeViewMode()
     }
 
     private fun bindCommandHub() {
@@ -535,11 +577,145 @@ class ModifyFragment : Fragment() {
         }
     }
 
+    private fun installSplitHost(settings: WorkspaceUiSettings) {
+        val parent = textEditor.parent as? LinearLayout ?: return
+        val editorIndex = parent.indexOfChild(textEditor)
+        if (editorIndex < 0) return
+
+        parent.removeView(textEditor)
+
+        splitSnapshot = TextView(requireContext()).apply {
+            text = "No loaded snapshot yet."
+            textSize = (settings.editorFontSp * settings.uiScalePercent / 100f).coerceIn(9f, 24f)
+            setTextColor(textEditor.currentTextColor)
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            isTextSelectable = true
+            setHorizontallyScrolling(false)
+            visibility = View.GONE
+        }
+
+        val widthDp = resources.configuration.screenWidthDp
+        val horizontalSplit = widthDp >= 600 || resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        splitHost = LinearLayout(requireContext()).apply {
+            orientation = if (horizontalSplit) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        }
+
+        if (horizontalSplit) {
+            splitHost.addView(
+                splitSnapshot,
+                LinearLayout.LayoutParams(0, dp(260), 1f).apply { marginEnd = dp(6) }
+            )
+            splitHost.addView(
+                textEditor,
+                LinearLayout.LayoutParams(0, dp(260), 1f)
+            )
+        } else {
+            splitHost.addView(
+                splitSnapshot,
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(180)).apply {
+                    bottomMargin = dp(6)
+                }
+            )
+            splitHost.addView(
+                textEditor,
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(240))
+            )
+        }
+
+        parent.addView(
+            splitHost,
+            editorIndex,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    private fun bindViewMode() {
+        if (!::viewModeButton.isInitialized) return
+        viewModeButton.setOnClickListener { showViewModePicker() }
+        applyViewMode(currentViewMode, persist = false)
+    }
+
+    private fun showViewModePicker() {
+        val modes = WorkspaceViewMode.values()
+        val labels = modes.map(workspaceViewController::titleFor).toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle("Workspace View")
+            .setSingleChoiceItems(labels, currentViewMode.ordinal) { dialog, which ->
+                applyViewMode(modes[which], persist = true)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun applyViewMode(mode: WorkspaceViewMode, persist: Boolean) {
+        currentViewMode = mode
+        val state = workspaceViewController.stateFor(mode)
+
+        entrySpinner.visibility = if (state.showNavigator) View.VISIBLE else View.GONE
+        view?.findViewById<Button>(R.id.modifyLoadText)?.visibility =
+            if (state.showNavigator) View.VISIBLE else View.GONE
+        view?.findViewById<Button>(R.id.modifyReplaceFile)?.visibility =
+            if (state.showNavigator) View.VISIBLE else View.GONE
+        fileList.visibility = if (state.showInventory) View.VISIBLE else View.GONE
+        splitSnapshot.visibility = if (state.showSnapshot) View.VISIBLE else View.GONE
+        textEditor.visibility = if (state.showEditor) View.VISIBLE else View.GONE
+
+        if (state.showSnapshot) renderLoadedSnapshot()
+
+        viewModeButton.text = when (mode) {
+            WorkspaceViewMode.FOCUS -> "Focus"
+            WorkspaceViewMode.SPLIT -> "Split"
+            WorkspaceViewMode.INSPECT -> "Inspect"
+        }
+        viewModeButton.contentDescription = "Workspace view: ${state.label}"
+
+        if (persist) {
+            val saved = uiSettingsStore.load()
+            uiSettingsStore.save(saved.copy(defaultViewMode = mode.toSettingViewMode()))
+        }
+
+        status.text = when (mode) {
+            WorkspaceViewMode.FOCUS -> "Focus view: editor prioritized; navigator and inventory hidden."
+            WorkspaceViewMode.SPLIT -> "Split view: loaded snapshot and current editor are shown together."
+            WorkspaceViewMode.INSPECT -> "Inspect view: navigator, editor, and file inventory are visible."
+        }
+    }
+
+    private fun renderLoadedSnapshot() {
+        if (!::splitSnapshot.isInitialized) return
+        splitSnapshot.text = if (loadedSnapshotText.isBlank()) {
+            "No plaintext snapshot loaded for ${loadedSnapshotPath ?: "this selection"}."
+        } else {
+            buildString {
+                append("LOADED SNAPSHOT")
+                loadedSnapshotPath?.let { append(" — ").append(it) }
+                append("\n\n")
+                append(loadedSnapshotText)
+            }
+        }
+    }
+
+    private fun WorkspaceViewModeSetting.toRuntimeViewMode(): WorkspaceViewMode = when (this) {
+        WorkspaceViewModeSetting.FOCUS -> WorkspaceViewMode.FOCUS
+        WorkspaceViewModeSetting.SPLIT -> WorkspaceViewMode.SPLIT
+        WorkspaceViewModeSetting.INSPECT -> WorkspaceViewMode.INSPECT
+    }
+
+    private fun WorkspaceViewMode.toSettingViewMode(): WorkspaceViewModeSetting = when (this) {
+        WorkspaceViewMode.FOCUS -> WorkspaceViewModeSetting.FOCUS
+        WorkspaceViewMode.SPLIT -> WorkspaceViewModeSetting.SPLIT
+        WorkspaceViewMode.INSPECT -> WorkspaceViewModeSetting.INSPECT
+    }
+
     private fun showCommandHub() {
         val actions = commandHubController.visibleActions()
         val labels = actions.map(commandHubController::titleFor).toTypedArray()
         AlertDialog.Builder(requireContext())
-            .setTitle("âš¡ Command Hub")
+            .setTitle("\u26A1 Command Hub")
             .setItems(labels) { _, which -> handleCommandHubAction(actions[which]) }
             .setNegativeButton("Close", null)
             .show()
