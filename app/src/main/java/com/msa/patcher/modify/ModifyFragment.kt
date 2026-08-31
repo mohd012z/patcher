@@ -1,4 +1,4 @@
-﻿package com.msa.patcher.modify
+package com.msa.patcher.modify
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -135,7 +135,7 @@ class ModifyFragment : Fragment() {
         val path = pendingReplacePath
         pendingReplacePath = null
         if (uri != null && path != null) {
-            runIo("Replacing $pathâ€¦") {
+            runIo("Replacing $path…") {
                 requireContext().contentResolver.openInputStream(uri).use { input ->
                     requireNotNull(input) { "Unable to open replacement file." }
                     requireEngine().replace(path, input, "Replacement imported from document picker")
@@ -148,7 +148,7 @@ class ModifyFragment : Fragment() {
     private val exportApk = registerForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.android.package-archive")) { uri ->
         val file = rebuiltFile
         if (uri != null && file != null) {
-            runIo("Exporting rebuilt APKâ€¦") {
+            runIo("Exporting rebuilt APK…") {
                 requireContext().contentResolver.openOutputStream(uri, "w").use { out ->
                     requireNotNull(out) { "Unable to open export destination." }
                     file.inputStream().use { it.copyTo(out) }
@@ -227,7 +227,7 @@ class ModifyFragment : Fragment() {
         languageSource.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, MlKitLanguageTranslator.supportedNames)
         languageTarget.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, MlKitLanguageTranslator.supportedNames.filterNot { it == "Auto" })
         languageTarget.setSelection(MlKitLanguageTranslator.supportedNames.filterNot { it == "Auto" }.indexOf("Malay").coerceAtLeast(0))
-        smaliSnippet.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, SmaliQuickCode.catalog.map { "${it.category} â€¢ ${it.title}" })
+        smaliSnippet.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, SmaliQuickCode.catalog.map { "${it.category} • ${it.title}" })
     }
 
     private fun bindSections(view: View) {
@@ -260,7 +260,7 @@ class ModifyFragment : Fragment() {
         view.findViewById<Button>(R.id.modifyCreateWorkspace).setOnClickListener {
             val uri = sourceUri
             if (uri == null) { status.text = "Choose an APK first."; return@setOnClickListener }
-            runIo("Creating isolated workspaceâ€¦") {
+            runIo("Creating isolated workspace…") {
                 val workspace = File(requireContext().cacheDir, "modify_workspace_v84")
                 val newEngine = ApkWorkspaceEngine(workspace)
                 requireContext().contentResolver.openInputStream(uri).use { input ->
@@ -274,7 +274,7 @@ class ModifyFragment : Fragment() {
         }
         view.findViewById<Button>(R.id.modifyLoadText).setOnClickListener {
             val path = selectedPath() ?: return@setOnClickListener
-            runIo("Loading $pathâ€¦") {
+            runIo("Loading $path…") {
                 val entry = requireEngine().allEntries(sourceName).firstOrNull { it.path == path }
                     ?: error("Entry not found.")
                 if (entry.textEditable) {
@@ -302,7 +302,7 @@ class ModifyFragment : Fragment() {
         view.findViewById<Button>(R.id.modifySaveText).setOnClickListener {
             val path = selectedPath() ?: return@setOnClickListener
             val text = textEditor.text.toString()
-            runIo("Saving $pathâ€¦") {
+            runIo("Saving $path…") {
                 requireEngine().writeText(path, text)
                 "Saved plaintext entry: $path"
             }
@@ -332,7 +332,7 @@ class ModifyFragment : Fragment() {
                 .setMessage("versionName=${name ?: "unchanged"}\nversionCode=${code ?: "unchanged"}\nappLabel=${label ?: "unchanged"}\n\nBinary AXML remains LIMITED.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Apply") { _, _ ->
-                    runIo("Updating plaintext manifest metadataâ€¦") {
+                    runIo("Updating plaintext manifest metadata…") {
                         requireEngine().updatePlaintextManifest(name, code, label)
                     }
                 }.show()
@@ -379,7 +379,7 @@ class ModifyFragment : Fragment() {
                 targetLanguage = languageTarget.selectedItem?.toString() ?: "Malay",
                 preserveFormat = languagePreserve.isChecked
             )
-            status.text = "Preparing language conversionâ€¦"
+            status.text = "Preparing language conversion…"
             translator.translate(request, onStatus = { message -> if (isAdded) status.text = message }) { result ->
                 if (!isAdded) return@translate
                 requireActivity().runOnUiThread {
@@ -419,11 +419,11 @@ class ModifyFragment : Fragment() {
     private fun bindDiffActions(view: View) {
         view.findViewById<Button>(R.id.diffRefresh).setOnClickListener { refreshDiff() }
         view.findViewById<Button>(R.id.modifyUndo).setOnClickListener {
-            runIo("Undoing last mutationâ€¦") { if (requireEngine().undoLast()) "Last mutation restored." else "Nothing to undo." }
+            runIo("Undoing last mutation…") { if (requireEngine().undoLast()) "Last mutation restored." else "Nothing to undo." }
         }
         view.findViewById<Button>(R.id.diffUndoSelected).setOnClickListener {
             val path = selectedPath() ?: return@setOnClickListener
-            runIo("Undoing latest change for $pathâ€¦") { if (requireEngine().undoLatestForPath(path)) "Restored latest change for $path." else "No mutation found for $path." }
+            runIo("Undoing latest change for $path…") { if (requireEngine().undoLatestForPath(path)) "Restored latest change for $path." else "No mutation found for $path." }
         }
     }
 
@@ -435,7 +435,7 @@ class ModifyFragment : Fragment() {
             refreshPreflight(report)
             if (!report.ready) { status.text = "Build blocked by preflight."; return@setOnClickListener }
             val requestedName = safeOutputName(outputName.text.toString())
-            runIo("Rebuilding modified APK archiveâ€¦") {
+            runIo("Rebuilding modified APK archive…") {
                 val output = File(requireContext().cacheDir, requestedName)
                 rebuiltFile = requireEngine().rebuild(output)
                 "Rebuild complete: ${output.name}\nUnsigned by design. Original APK was not overwritten."
@@ -682,7 +682,7 @@ class ModifyFragment : Fragment() {
         } else {
             buildString {
                 append("LOADED SNAPSHOT")
-                loadedSnapshotPath?.let { append(" â€” ").append(it) }
+                loadedSnapshotPath?.let { append(" — ").append(it) }
                 append("\n\n")
                 append(loadedSnapshotText)
             }
@@ -750,7 +750,7 @@ class ModifyFragment : Fragment() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
                     val percent = zoomController.scale(key, detector.scaleFactor)
                     applyZoomToView(key, target)
-                    status.text = "$label zoom: ${percent}% â€¢ double-tap to reset"
+                    status.text = "$label zoom: ${percent}% • double-tap to reset"
                     return true
                 }
 
@@ -885,8 +885,8 @@ class ModifyFragment : Fragment() {
 
     private fun renderSearchHits() {
         searchResults.text = if (lastSearchHits.isEmpty()) "No matches." else lastSearchHits.take(100).mapIndexed { index, hit ->
-            "${index + 1}. [${hit.kind}] ${hit.path}\n   matches=${hit.matchCount} â€¢ ${if (hit.textEditable) "EDITABLE TEXT" else if (hit.editable) "REPLACEABLE" else "READ-ONLY"}\n   ${hit.context}"
-        }.joinToString("\n\n") + if (lastSearchHits.size > 100) "\n\nâ€¦ ${lastSearchHits.size - 100} more result(s) not displayed." else ""
+            "${index + 1}. [${hit.kind}] ${hit.path}\n   matches=${hit.matchCount} • ${if (hit.textEditable) "EDITABLE TEXT" else if (hit.editable) "REPLACEABLE" else "READ-ONLY"}\n   ${hit.context}"
+        }.joinToString("\n\n") + if (lastSearchHits.size > 100) "\n\n… ${lastSearchHits.size - 100} more result(s) not displayed." else ""
         status.text = "Search complete: ${lastSearchHits.size} result(s)."
     }
 
@@ -906,13 +906,13 @@ class ModifyFragment : Fragment() {
                 entry.editable -> "FILE"
                 else -> "READ-ONLY"
             }
-            "${entry.path}  â€¢  $state  â€¢  ${entry.size} B"
+            "${entry.path}  •  $state  •  ${entry.size} B"
         }
         entrySpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, labels)
         fileList.text = entries.take(160).joinToString("\n") { entry ->
             val state = when { entry.textEditable -> "EDIT"; entry.editable -> "REPLACE"; else -> "RO" }
             "[$state] ${entry.path} (${entry.size} B)"
-        } + if (entries.size > 160) "\nâ€¦ ${entries.size - 160} more entries. Use Search for exact files." else ""
+        } + if (entries.size > 160) "\n… ${entries.size - 160} more entries. Use Search for exact files." else ""
         mutationLog.text = e.mutationLog().ifEmpty { listOf("No modifications yet.") }.joinToString("\n")
     }
 
@@ -932,7 +932,7 @@ class ModifyFragment : Fragment() {
     private fun refreshDiff() {
         val diffs = engine?.diffEntries().orEmpty()
         diffOutput.text = if (diffs.isEmpty()) "No modifications yet." else diffs.joinToString("\n\n") { d ->
-            "${d.operation}: ${d.path}\n${d.beforeSize} B â†’ ${d.afterSize} B â€¢ ${d.validationState}\n${d.preview}"
+            "${d.operation}: ${d.path}\n${d.beforeSize} B → ${d.afterSize} B • ${d.validationState}\n${d.preview}"
         }
     }
 
@@ -941,8 +941,8 @@ class ModifyFragment : Fragment() {
         val report = reportOverride ?: BuildPreflight.check(e?.isReady() == true, e?.allEntries(sourceName)?.size ?: 0, e?.mutationCount() ?: 0)
         buildOutput.text = buildString {
             append(report.summary)
-            if (report.errors.isNotEmpty()) append("\nErrors:\n").append(report.errors.joinToString("\n") { "â€¢ $it" })
-            if (report.warnings.isNotEmpty()) append("\nWarnings:\n").append(report.warnings.joinToString("\n") { "â€¢ $it" })
+            if (report.errors.isNotEmpty()) append("\nErrors:\n").append(report.errors.joinToString("\n") { "• $it" })
+            if (report.warnings.isNotEmpty()) append("\nWarnings:\n").append(report.warnings.joinToString("\n") { "• $it" })
         }
     }
 
@@ -963,7 +963,7 @@ class ModifyFragment : Fragment() {
         val ctx = SuggestionContext(sourceName, meta?.versionName, meta?.versionCode, meta?.appLabel, selectedPathSilently(), textEditor.text.toString().take(2000))
         val suggestions = WorkspaceSuggestions.forField(fieldId, ctx)
         if (suggestions.isEmpty()) { status.text = "No suggestion available for this field."; return }
-        val labels = suggestions.map { "${it.value} â€” ${it.reason}" }.toTypedArray()
+        val labels = suggestions.map { "${it.value} — ${it.reason}" }.toTypedArray()
         AlertDialog.Builder(requireContext()).setTitle("Auto Suggest").setItems(labels) { _, which ->
             target.setText(suggestions[which].value); target.setSelection(target.text.length)
             status.text = "Suggestion inserted only. Press Apply/Save when ready."
