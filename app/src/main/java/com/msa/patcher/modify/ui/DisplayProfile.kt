@@ -16,16 +16,17 @@ data class DisplayProfile(
             require(heightDp > 0) { "heightDp must be > 0" }
             require(density > 0f) { "density must be > 0" }
 
+            val smallestWidthDp = minOf(widthDp, heightDp)
             val mode = when {
-                widthDp >= 600 -> LayoutMode.TABLET
+                smallestWidthDp >= 600 -> LayoutMode.TABLET
                 widthDp > heightDp -> LayoutMode.LANDSCAPE
                 else -> LayoutMode.PORTRAIT
             }
 
-            val densityMode = when {
-                widthDp < 420 -> UiDensity.COMPACT
-                widthDp >= 840 -> UiDensity.NORMAL
-                else -> UiDensity.NORMAL
+            val densityMode = if (smallestWidthDp < 420) {
+                UiDensity.COMPACT
+            } else {
+                UiDensity.NORMAL
             }
 
             return DisplayProfile(
