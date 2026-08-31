@@ -7,6 +7,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.msa.patcher.analyze.AnalyzeFragment
 import com.msa.patcher.evidence.EvidenceFragment
 import com.msa.patcher.home.HomeFragment
+import com.msa.patcher.modify.ModifyFragment
 import com.msa.patcher.report.ReportFragment
 import com.msa.patcher.tools.ToolsFragment
 
@@ -33,7 +34,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun openModifyWorkspace() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.contentFrame, ModifyFragment())
+            .addToBackStack("modify_workspace")
+            .commit()
+    }
+
     private fun showDestination(fragment: Fragment) {
+        supportFragmentManager.popBackStack()
         supportFragmentManager.beginTransaction()
             .replace(R.id.contentFrame, fragment)
             .commit()

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/modifyBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Back" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Modify APK Workspace"
+                android:textColor="@color/msa_text"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="For APKs you own or are authorized to modify. Workspace edits never overwrite the original."
+            android:textColor="@color/msa_muted" />
+
+        <TextView
+            android:id="@+id/modifyStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:padding="10dp"
+            android:text="Choose an APK."
+            android:textColor="@color/msa_text" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/modifyChooseApk"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Choose APK" />
+
+            <Button
+                android:id="@+id/modifyCreateWorkspace"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Create Workspace" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Editable Entry"
+            android:textColor="@color/msa_text"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/modifyEntrySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/modifyLoadText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Load Text" />
+
+            <Button
+                android:id="@+id/modifyReplaceFile"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Replace File" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/modifyTextEditor"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="8dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:padding="10dp"
+            android:scrollbars="vertical"
+            android:textColor="@color/msa_text" />
+
+        <Button
+            android:id="@+id/modifySaveText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Text Entry" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Manifest Metadata — plaintext AndroidManifest.xml only"
+            android:textColor="@color/msa_text"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/modifyVersionName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="versionName (optional)"
+            android:inputType="text"
+            android:textColor="@color/msa_text"
+            android:textColorHint="@color/msa_muted" />
+
+        <EditText
+            android:id="@+id/modifyVersionCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="versionCode (optional)"
+            android:inputType="number"
+            android:textColor="@color/msa_text"
+            android:textColorHint="@color/msa_muted" />
+
+        <EditText
+            android:id="@+id/modifyAppLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Direct app label (optional)"
+            android:inputType="text"
+            android:textColor="@color/msa_text"
+            android:textColorHint="@color/msa_muted" />
+
+        <Button
+            android:id="@+id/modifyManifestApply"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Apply Manifest Metadata" />
+
+        <Button
+            android:id="@+id/modifyUndo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Undo Last Change" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Mutation Log"
+            android:textColor="@color/msa_text"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/modifyMutationLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="No modifications yet."
+            android:textColor="@color/msa_muted"
+            android:textIsSelectable="true" />
+
+        <Button
+            android:id="@+id/modifyRebuild"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Rebuild Unsigned APK" />
+
+        <Button
+            android:id="@+id/modifyExport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Export Rebuilt APK" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Binary AXML/resources.arsc, DEX and native code mutation are intentionally not rewritten in this V8.3 workspace. Rebuilt output requires your own authorized signing identity."
+            android:textColor="@color/msa_muted" />
+    </LinearLayout>
+</ScrollView>
