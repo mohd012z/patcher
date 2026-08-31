@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -13,6 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -38,6 +40,12 @@ import com.msa.patcher.modify.search.SearchEntry
 import com.msa.patcher.modify.search.SearchHit
 import com.msa.patcher.modify.search.SearchScope
 import com.msa.patcher.modify.search.WorkspaceSearch
+import com.msa.patcher.modify.settings.ButtonSize
+import com.msa.patcher.modify.settings.SharedPreferencesSettingsBackend
+import com.msa.patcher.modify.settings.WorkspaceUiSettings
+import com.msa.patcher.modify.settings.WorkspaceUiSettingsStore
+import com.msa.patcher.modify.ui.CommandHubAction
+import com.msa.patcher.modify.ui.CommandHubController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -86,6 +94,9 @@ class ModifyFragment : Fragment() {
     private lateinit var assistantBubble: Button
     private lateinit var assistantQuestion: EditText
     private lateinit var assistantAnswer: TextView
+    private lateinit var commandHubButton: Button
+    private lateinit var uiSettingsStore: WorkspaceUiSettingsStore
+    private val commandHubController = CommandHubController()
 
     private val panels = linkedMapOf<WorkspaceSection, View>()
 
@@ -130,6 +141,7 @@ class ModifyFragment : Fragment() {
 
     override fun onViewCreated(view: View, state: Bundle?) {
         bindViews(view)
+        initializeV85Ui(view)
         bindSections(view)
         bindWorkspaceActions(view)
         bindManifestActions(view)
@@ -139,6 +151,7 @@ class ModifyFragment : Fragment() {
         bindDiffActions(view)
         bindBuildActions(view)
         bindAssistant(view)
+        bindCommandHub()
         bindHelpAndSuggestions(view)
 
         sourceUri = homeVm.selectedUri.value
@@ -210,6 +223,10 @@ class ModifyFragment : Fragment() {
             R.id.tabDiff to WorkspaceSection.DIFF,
             R.id.tabBuild to WorkspaceSection.BUILD
         ).forEach { (id, section) -> view.findViewById<Button>(id).setOnClickListener { showSection(section) } }
+
+        // V8.5 uses the floating Command Hub as the primary navigation.
+        // Keep legacy tab IDs in the layout for compatibility but remove the permanent row from view.
+        (view.findViewById<Button>(R.id.tabFiles).parent?.parent as? View)?.visibility = View.GONE
     }
 
     private fun bindWorkspaceActions(view: View) {
@@ -450,6 +467,150 @@ class ModifyFragment : Fragment() {
         view.findViewById<Button>(R.id.suggestOutputName).setOnClickListener { applySuggestion("outputName", outputName) }
     }
 
+    private fun initializeV85Ui(view: View) {
+        val prefs = requireContext().getSharedPreferences("workspace_ui_v85", Context.MODE_PRIVATE)
+        uiSettingsStore = WorkspaceUiSettingsStore(SharedPreferencesSettingsBackend(prefs))
+        val settings = uiSettingsStore.load()
+        applyCompactUi(view, settings)
+
+        val root = view as? FrameLayout ?: return
+        commandHubButton = Button(requireContext()).apply {
+            text = "âš¡"
+            contentDescription = "Open Command Hub"
+            textSize = (20f * settings.uiScalePercent / 100f).coerceIn(16f, 24f)
+            minWidth = 0
+            minHeight = 0
+            setPadding(0, 0, 0, 0)
+            elevation = dp(8).toFloat()
+        }
+        val size = dp(
+            when (settings.buttonSize) {
+                ButtonSize.SMALL -> 50
+                ButtonSize.MEDIUM -> 56
+                ButtonSize.LARGE -> 64
+            }
+        )
+        root.addView(
+            commandHubButton,
+            FrameLayout.LayoutParams(size, size, Gravity.END or Gravity.BOTTOM).apply {
+                marginEnd = dp(12)
+                bottomMargin = dp(16)
+            }
+        )
+    }
+
+    private fun bindCommandHub() {
+        if (!::commandHubButton.isInitialized) return
+
+        var downX = 0f
+        var downY = 0f
+        var startTx = 0f
+        var startTy = 0f
+        var moved = false
+
+        commandHubButton.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.rawX
+                    downY = event.rawY
+                    startTx = v.translationX
+                    startTy = v.translationY
+                    moved = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - downX
+                    val dy = event.rawY - downY
+                    if (kotlin.math.abs(dx) > dp(4) || kotlin.math.abs(dy) > dp(4)) moved = true
+                    v.translationX = startTx + dx
+                    v.translationY = startTy + dy
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (!moved) showCommandHub()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun showCommandHub() {
+        val actions = commandHubController.visibleActions()
+        val labels = actions.map(commandHubController::titleFor).toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle("âš¡ Command Hub")
+            .setItems(labels) { _, which -> handleCommandHubAction(actions[which]) }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun handleCommandHubAction(action: CommandHubAction) {
+        when (action) {
+            CommandHubAction.OPEN_FILE -> showSection(WorkspaceSection.FILES)
+            CommandHubAction.MANIFEST -> showSection(WorkspaceSection.MANIFEST)
+            CommandHubAction.SEARCH -> showSection(WorkspaceSection.SEARCH)
+            CommandHubAction.REPLACE -> {
+                showSection(WorkspaceSection.FILES)
+                status.text = "Select an existing replaceable resource/asset, then use Replace."
+            }
+            CommandHubAction.CONVERTER,
+            CommandHubAction.LANGUAGE -> showSection(WorkspaceSection.CONVERTER)
+            CommandHubAction.CODE -> showSection(WorkspaceSection.CODE_TOOLS)
+            CommandHubAction.DIFF -> showSection(WorkspaceSection.DIFF)
+            CommandHubAction.BUILD -> showSection(WorkspaceSection.BUILD)
+            CommandHubAction.AI -> {
+                assistantPanel.visibility = if (assistantPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            }
+            CommandHubAction.SETTINGS -> showUiSettingsSummary()
+            CommandHubAction.RECENT,
+            CommandHubAction.FAVORITES,
+            CommandHubAction.CRYPTO,
+            CommandHubAction.COLOR -> {
+                status.text = "${action.title} is staged for the next V8.5 milestone."
+            }
+        }
+    }
+
+    private fun showUiSettingsSummary() {
+        val settings = uiSettingsStore.load()
+        AlertDialog.Builder(requireContext())
+            .setTitle("V8.5 Workspace UI")
+            .setMessage(
+                "UI scale: ${settings.uiScalePercent}%\n" +
+                    "Font: ${settings.fontSp}sp\n" +
+                    "Editor: ${settings.editorFontSp}sp\n" +
+                    "Buttons: ${settings.buttonSize}\n" +
+                    "Default view: ${settings.defaultViewMode}\n" +
+                    "Auto-hide UI: ${settings.autoHideUi}\n\n" +
+                    "Full settings editor is added in the next workspace task."
+            )
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun applyCompactUi(view: View, settings: WorkspaceUiSettings) {
+        val scale = settings.uiScalePercent / 100f
+        if (view is Button) {
+            view.textSize = (settings.fontSp * scale).coerceIn(10f, 22f)
+            view.minHeight = dp(
+                when (settings.buttonSize) {
+                    ButtonSize.SMALL -> 40
+                    ButtonSize.MEDIUM -> 48
+                    ButtonSize.LARGE -> 56
+                }
+            )
+            val horizontal = dp(if (settings.buttonSize == ButtonSize.SMALL) 8 else 12)
+            val vertical = dp(if (settings.buttonSize == ButtonSize.SMALL) 3 else 6)
+            view.setPadding(horizontal, vertical, horizontal, vertical)
+        }
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) applyCompactUi(view.getChildAt(i), settings)
+        }
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
     private fun showSection(section: WorkspaceSection) {
         panels.forEach { (key, panel) -> panel.visibility = if (key == section) View.VISIBLE else View.GONE }
         when (section) {

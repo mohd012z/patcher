@@ -33,7 +33,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:text="MSAPatcher V8.4 Modify Workspace"
+                    android:text="MSAPatcher V8.5 Modify Workspace"
                     android:textColor="@color/msa_text"
                     android:textSize="21sp"
                     android:textStyle="bold" />
@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Files • Manifest • Search • Converter • Code Tools • Diff • Build. For APKs you own or are authorized to modify."
+                android:text="Full-view workspace. Tap the floating ⚡ Command Hub for tools. For APKs you own or are authorized to modify."
                 android:textColor="@color/msa_muted" />
 
             <TextView
