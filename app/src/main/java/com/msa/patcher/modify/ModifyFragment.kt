@@ -1,3 +1,4 @@
+git commit -m "Add V8.5.1 pinch zoom and per-view memory"
 package com.msa.patcher.modify
 
 import android.content.ClipData
@@ -5,9 +6,12 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.TypedValue
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -47,6 +51,8 @@ import com.msa.patcher.modify.settings.WorkspaceUiSettingsStore
 import com.msa.patcher.modify.settings.WorkspaceViewModeSetting
 import com.msa.patcher.modify.ui.CommandHubAction
 import com.msa.patcher.modify.ui.CommandHubController
+import com.msa.patcher.modify.ui.PerViewZoomController
+import com.msa.patcher.modify.ui.ZoomViewKey
 import com.msa.patcher.modify.ui.WorkspaceViewController
 import com.msa.patcher.modify.ui.WorkspaceViewMode
 import kotlinx.coroutines.Dispatchers
@@ -104,6 +110,10 @@ class ModifyFragment : Fragment() {
     private lateinit var uiSettingsStore: WorkspaceUiSettingsStore
     private val commandHubController = CommandHubController()
     private val workspaceViewController = WorkspaceViewController()
+    private val zoomController = PerViewZoomController()
+    private val zoomBaseSp = mutableMapOf<ZoomViewKey, Float>()
+    private lateinit var zoomPrefs: android.content.SharedPreferences
+    private var rememberZoomPerView: Boolean = true
     private var currentViewMode = WorkspaceViewMode.FOCUS
     private var loadedSnapshotText: String = ""
     private var loadedSnapshotPath: String? = null
@@ -163,6 +173,7 @@ class ModifyFragment : Fragment() {
         bindAssistant(view)
         bindCommandHub()
         bindViewMode()
+        bindPinchZoom()
         bindHelpAndSuggestions(view)
 
         sourceUri = homeVm.selectedUri.value
@@ -493,6 +504,8 @@ class ModifyFragment : Fragment() {
         uiSettingsStore = WorkspaceUiSettingsStore(SharedPreferencesSettingsBackend(prefs))
         val settings = uiSettingsStore.load()
         applyCompactUi(view, settings)
+        zoomPrefs = requireContext().getSharedPreferences("workspace_zoom_v85", Context.MODE_PRIVATE)
+        rememberZoomPerView = settings.rememberZoomPerView
 
         val root = view as? FrameLayout ?: return
         commandHubButton = Button(requireContext()).apply {
@@ -711,6 +724,87 @@ class ModifyFragment : Fragment() {
         WorkspaceViewMode.INSPECT -> WorkspaceViewModeSetting.INSPECT
     }
 
+    private fun bindPinchZoom() {
+        val targets = listOf(
+            Triple(ZoomViewKey.EDITOR, textEditor as TextView, "Editor"),
+            Triple(ZoomViewKey.SNAPSHOT, splitSnapshot, "Snapshot"),
+            Triple(ZoomViewKey.SEARCH, searchResults, "Search"),
+            Triple(ZoomViewKey.DIFF, diffOutput, "Diff"),
+            Triple(ZoomViewKey.BUILD, buildOutput, "Build"),
+            Triple(ZoomViewKey.AI, assistantAnswer, "AI")
+        )
+        targets.forEach { (key, target, label) ->
+            attachPinchZoom(key, target, label)
+        }
+    }
+
+    private fun attachPinchZoom(key: ZoomViewKey, target: TextView, label: String) {
+        val scaledDensity = resources.displayMetrics.scaledDensity.coerceAtLeast(0.1f)
+        zoomBaseSp.putIfAbsent(key, target.textSize / scaledDensity)
+
+        val restored = if (rememberZoomPerView) {
+            zoomPrefs.getInt("zoom_${key.storageKey}", 100)
+        } else {
+            100
+        }
+        zoomController.setPercent(key, restored)
+        applyZoomToView(key, target)
+
+        var doubleTapTriggered = false
+        val gestureDetector = GestureDetector(
+            requireContext(),
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent): Boolean = true
+
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    doubleTapTriggered = true
+                    val percent = zoomController.reset(key)
+                    applyZoomToView(key, target)
+                    saveZoomPercent(key, percent)
+                    status.text = "$label zoom: 100% (reset)"
+                    return true
+                }
+            }
+        )
+
+        val scaleDetector = ScaleGestureDetector(
+            requireContext(),
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val percent = zoomController.scale(key, detector.scaleFactor)
+                    applyZoomToView(key, target)
+                    status.text = "$label zoom: ${percent}% • double-tap to reset"
+                    return true
+                }
+
+                override fun onScaleEnd(detector: ScaleGestureDetector) {
+                    saveZoomPercent(key, zoomController.percent(key))
+                }
+            }
+        )
+
+        target.setOnTouchListener { _, event ->
+            doubleTapTriggered = false
+            gestureDetector.onTouchEvent(event)
+            scaleDetector.onTouchEvent(event)
+            doubleTapTriggered || scaleDetector.isInProgress
+        }
+    }
+
+    private fun applyZoomToView(key: ZoomViewKey, target: TextView) {
+        val baseSp = zoomBaseSp[key] ?: return
+        val percent = zoomController.percent(key)
+        target.setTextSize(
+            TypedValue.COMPLEX_UNIT_SP,
+            baseSp * percent / 100f
+        )
+    }
+
+    private fun saveZoomPercent(key: ZoomViewKey, percent: Int) {
+        if (!rememberZoomPerView) return
+        zoomPrefs.edit().putInt("zoom_${key.storageKey}", percent).apply()
+    }
+
     private fun showCommandHub() {
         val actions = commandHubController.visibleActions()
         val labels = actions.map(commandHubController::titleFor).toTypedArray()
@@ -758,6 +852,7 @@ class ModifyFragment : Fragment() {
                     "Editor: ${settings.editorFontSp}sp\n" +
                     "Buttons: ${settings.buttonSize}\n" +
                     "Default view: ${settings.defaultViewMode}\n" +
+                    "Remember zoom per view: ${settings.rememberZoomPerView}\n" +
                     "Auto-hide UI: ${settings.autoHideUi}\n\n" +
                     "Full settings editor is added in the next workspace task."
             )
