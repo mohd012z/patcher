@@ -1,209 +1,314 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:layout_height="match_parent">
 
-    <LinearLayout
+    <ScrollView
+        android:id="@+id/modifyMainScroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingBottom="84dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="14dp">
 
-            <Button
-                android:id="@+id/modifyBack"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Back" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/modifyBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Back" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="MSAPatcher V8.4 Modify Workspace"
+                    android:textColor="@color/msa_text"
+                    android:textSize="21sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:text="Modify APK Workspace"
+                android:layout_marginTop="4dp"
+                android:text="Files • Manifest • Search • Converter • Code Tools • Diff • Build. For APKs you own or are authorized to modify."
+                android:textColor="@color/msa_muted" />
+
+            <TextView
+                android:id="@+id/modifyStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="9dp"
+                android:text="Choose an APK or reuse Home selection."
                 android:textColor="@color/msa_text"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textIsSelectable="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/modifyChooseApk"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Choose APK" />
+
+                <Button
+                    android:id="@+id/modifyCreateWorkspace"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="Create Workspace" />
+            </LinearLayout>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="horizontal">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button android:id="@+id/tabFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Files" />
+                    <Button android:id="@+id/tabManifest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Manifest" />
+                    <Button android:id="@+id/tabSearch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Search" />
+                    <Button android:id="@+id/tabConverter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Converter" />
+                    <Button android:id="@+id/tabCodeTools" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Code Tools" />
+                    <Button android:id="@+id/tabDiff" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Diff" />
+                    <Button android:id="@+id/tabBuild" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Build" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <LinearLayout
+                android:id="@+id/panelFiles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="FILES — complete workspace inventory" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <Spinner android:id="@+id/modifyEntrySpinner" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/modifyLoadText" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Load / Preview" />
+                    <Button android:id="@+id/modifyReplaceFile" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:layout_weight="1" android:text="Replace" />
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/modifyTextEditor"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp"
+                    android:layout_marginTop="6dp"
+                    android:gravity="top|start"
+                    android:hint="Editable plaintext / scratchpad"
+                    android:inputType="textMultiLine|textNoSuggestions"
+                    android:padding="8dp"
+                    android:scrollbars="vertical"
+                    android:textColor="@color/msa_text"
+                    android:textColorHint="@color/msa_muted" />
+
+                <Button android:id="@+id/modifySaveText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Save Text Entry" />
+                <TextView android:id="@+id/modifyFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="Create workspace to list files." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panelManifest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="MANIFEST — plaintext metadata editor" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <TextView android:id="@+id/manifestState" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Create workspace first." android:textColor="@color/msa_muted" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/modifyVersionName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="versionName" android:inputType="text" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpVersionName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestVersionName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/modifyVersionCode" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="versionCode" android:inputType="number" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpVersionCode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestVersionCode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/modifyAppLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Direct app label" android:inputType="text" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpAppLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestAppLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+                <Button android:id="@+id/modifyManifestApply" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Preview / Apply Manifest Metadata" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panelSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="SEARCH — path + content" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/searchQuery" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Search file/path/content" android:inputType="text" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpSearch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestSearch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+                <Spinner android:id="@+id/searchScope" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/searchPathButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="File/Path Search" />
+                    <Button android:id="@+id/searchContentButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:layout_weight="1" android:text="Content Search" />
+                </LinearLayout>
+                <Button android:id="@+id/searchOpenFirst" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Open First Result" />
+                <TextView android:id="@+id/searchResults" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="No search yet." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panelConverter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="CONVERTER — numbers, bytes, Base64, text, URL, endian" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/converterInput" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Value to convert" android:inputType="textMultiLine" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpConverter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestConverter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+                <Spinner android:id="@+id/converterType" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <Button android:id="@+id/converterRun" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Auto Detect / Convert" />
+                <TextView android:id="@+id/converterOutput" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="Conversion result appears here." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/converterCopy" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Copy" />
+                    <Button android:id="@+id/converterInsert" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Insert Editor" />
+                    <Button android:id="@+id/converterSearch" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Search Value" />
+                </LinearLayout>
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="Language Converter — ML Kit on-device models" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/languageInput" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Text to translate" android:inputType="textMultiLine" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+                <Spinner android:id="@+id/languageSource" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/languageTarget" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <CheckBox android:id="@+id/languagePreserve" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="Preserve XML/Android placeholders and resource references" android:textColor="@color/msa_text" />
+                <Button android:id="@+id/languageTranslate" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Translate" />
+                <TextView android:id="@+id/languageOutput" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="Translation result appears here." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <Button android:id="@+id/languageCopy" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Copy" />
+                    <Button android:id="@+id/languageInsert" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Insert Editor" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panelCodeTools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="CODE TOOLS — ordinary Smali syntax helper" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/smaliDescriptor" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Method descriptor e.g. ()V or ()Z" android:inputType="text" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpSmali" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestSmali" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+                <Button android:id="@+id/smaliSuggestReturn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Suggest Compatible Return" />
+                <Spinner android:id="@+id/smaliSnippet" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <EditText android:id="@+id/smaliExplainInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Paste one Smali line to explain" android:inputType="text" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                <Button android:id="@+id/smaliExplain" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Explain / Preview" />
+                <TextView android:id="@+id/smaliPreview" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="Choose a snippet." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+                <Button android:id="@+id/smaliInsert" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Insert Snippet into Text Editor" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DEX/native mutation remains read-only in V8.4. Code Tools do not automate licensing, signature/integrity, paid-feature or protection bypass changes." android:textColor="@color/msa_muted" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panelDiff"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="DIFF / UNDO" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <Button android:id="@+id/diffRefresh" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Refresh Diff" />
+                <Button android:id="@+id/modifyUndo" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Undo Last Change" />
+                <Button android:id="@+id/diffUndoSelected" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Undo Latest Change for Selected File" />
+                <TextView android:id="@+id/diffOutput" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="No modifications yet." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panelBuild"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="BUILD — preflight, rebuild, export" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <EditText android:id="@+id/outputName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Output APK name" android:inputType="text" android:textColor="@color/msa_text" android:textColorHint="@color/msa_muted" />
+                    <Button android:id="@+id/helpOutputName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" />
+                    <Button android:id="@+id/suggestOutputName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Suggest" />
+                </LinearLayout>
+                <Button android:id="@+id/buildValidate" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Validate / Preflight" />
+                <Button android:id="@+id/modifyRebuild" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Rebuild Unsigned APK" />
+                <Button android:id="@+id/modifyExport" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Export Rebuilt APK" />
+                <TextView android:id="@+id/buildOutput" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="Run preflight before rebuild." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Mutation Log" android:textColor="@color/msa_text" android:textStyle="bold" />
+                <TextView android:id="@+id/modifyMutationLog" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:text="No modifications yet." android:textColor="@color/msa_muted" android:textIsSelectable="true" />
+            </LinearLayout>
         </LinearLayout>
+    </ScrollView>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="For APKs you own or are authorized to modify. Workspace edits never overwrite the original."
-            android:textColor="@color/msa_muted" />
+    <LinearLayout
+        android:id="@+id/assistantPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#EE20252B"
+        android:elevation="12dp"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone">
 
-        <TextView
-            android:id="@+id/modifyStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:padding="10dp"
-            android:text="Choose an APK."
-            android:textColor="@color/msa_text" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/modifyChooseApk"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Choose APK" />
-
-            <Button
-                android:id="@+id/modifyCreateWorkspace"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Create Workspace" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="AI Assistant — local/contextual" android:textColor="@android:color/white" android:textStyle="bold" />
+            <Button android:id="@+id/assistantClose" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="X" />
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Editable Entry"
-            android:textColor="@color/msa_text"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:id="@+id/modifyEntrySpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/modifyLoadText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Load Text" />
-
-            <Button
-                android:id="@+id/modifyReplaceFile"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Replace File" />
+        <EditText android:id="@+id/assistantQuestion" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Ask about selected file, search, conversion, build error or Smali syntax" android:inputType="textMultiLine" android:textColor="@android:color/white" android:textColorHint="#FFB0B8C0" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/assistantSend" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Ask" />
+            <Button android:id="@+id/assistantConvert" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Convert" />
+            <Button android:id="@+id/assistantSearch" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Search" />
         </LinearLayout>
-
-        <EditText
-            android:id="@+id/modifyTextEditor"
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:layout_marginTop="8dp"
-            android:gravity="top|start"
-            android:inputType="textMultiLine|textNoSuggestions"
-            android:padding="10dp"
-            android:scrollbars="vertical"
-            android:textColor="@color/msa_text" />
-
-        <Button
-            android:id="@+id/modifySaveText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Text Entry" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:text="Manifest Metadata — plaintext AndroidManifest.xml only"
-            android:textColor="@color/msa_text"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/modifyVersionName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="versionName (optional)"
-            android:inputType="text"
-            android:textColor="@color/msa_text"
-            android:textColorHint="@color/msa_muted" />
-
-        <EditText
-            android:id="@+id/modifyVersionCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="versionCode (optional)"
-            android:inputType="number"
-            android:textColor="@color/msa_text"
-            android:textColorHint="@color/msa_muted" />
-
-        <EditText
-            android:id="@+id/modifyAppLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Direct app label (optional)"
-            android:inputType="text"
-            android:textColor="@color/msa_text"
-            android:textColorHint="@color/msa_muted" />
-
-        <Button
-            android:id="@+id/modifyManifestApply"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Apply Manifest Metadata" />
-
-        <Button
-            android:id="@+id/modifyUndo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Undo Last Change" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Mutation Log"
-            android:textColor="@color/msa_text"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/modifyMutationLog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="No modifications yet."
-            android:textColor="@color/msa_muted"
-            android:textIsSelectable="true" />
-
-        <Button
-            android:id="@+id/modifyRebuild"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Rebuild Unsigned APK" />
-
-        <Button
-            android:id="@+id/modifyExport"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Export Rebuilt APK" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Binary AXML/resources.arsc, DEX and native code mutation are intentionally not rewritten in this V8.3 workspace. Rebuilt output requires your own authorized signing identity."
-            android:textColor="@color/msa_muted" />
+        <TextView android:id="@+id/assistantAnswer" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxHeight="220dp" android:padding="6dp" android:scrollbars="vertical" android:text="Assistant ready." android:textColor="@android:color/white" android:textIsSelectable="true" />
     </LinearLayout>
-</ScrollView>
+
+    <Button
+        android:id="@+id/assistantBubble"
+        android:layout_width="64dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="14dp"
+        android:elevation="14dp"
+        android:text="AI" />
+</FrameLayout>

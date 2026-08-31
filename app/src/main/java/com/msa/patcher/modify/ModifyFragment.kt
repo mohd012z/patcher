@@ -1,21 +1,43 @@
 package com.msa.patcher.modify
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.msa.patcher.R
 import com.msa.patcher.home.HomeViewModel
+import com.msa.patcher.modify.assistant.AssistantContext
+import com.msa.patcher.modify.assistant.LocalAssistant
+import com.msa.patcher.modify.build.BuildPreflight
+import com.msa.patcher.modify.code.SmaliQuickCode
+import com.msa.patcher.modify.converter.DataConverter
+import com.msa.patcher.modify.converter.DetectedInputType
+import com.msa.patcher.modify.converter.LanguageRequest
+import com.msa.patcher.modify.converter.MlKitLanguageTranslator
+import com.msa.patcher.modify.help.FieldHelp
+import com.msa.patcher.modify.help.SuggestionContext
+import com.msa.patcher.modify.help.WorkspaceSuggestions
+import com.msa.patcher.modify.search.SearchEntry
+import com.msa.patcher.modify.search.SearchHit
+import com.msa.patcher.modify.search.SearchScope
+import com.msa.patcher.modify.search.WorkspaceSearch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,20 +51,50 @@ class ModifyFragment : Fragment() {
     private var engine: ApkWorkspaceEngine? = null
     private var rebuiltFile: File? = null
     private var pendingReplacePath: String? = null
+    private var entryPaths: List<String> = emptyList()
+    private var lastSearchHits: List<SearchHit> = emptyList()
+    private val translator = MlKitLanguageTranslator()
 
     private lateinit var status: TextView
     private lateinit var mutationLog: TextView
     private lateinit var entrySpinner: Spinner
     private lateinit var textEditor: EditText
+    private lateinit var fileList: TextView
     private lateinit var versionName: EditText
     private lateinit var versionCode: EditText
     private lateinit var appLabel: EditText
+    private lateinit var manifestState: TextView
+    private lateinit var searchQuery: EditText
+    private lateinit var searchScope: Spinner
+    private lateinit var searchResults: TextView
+    private lateinit var converterInput: EditText
+    private lateinit var converterType: Spinner
+    private lateinit var converterOutput: TextView
+    private lateinit var languageInput: EditText
+    private lateinit var languageSource: Spinner
+    private lateinit var languageTarget: Spinner
+    private lateinit var languagePreserve: CheckBox
+    private lateinit var languageOutput: TextView
+    private lateinit var smaliDescriptor: EditText
+    private lateinit var smaliExplainInput: EditText
+    private lateinit var smaliSnippet: Spinner
+    private lateinit var smaliPreview: TextView
+    private lateinit var diffOutput: TextView
+    private lateinit var buildOutput: TextView
+    private lateinit var outputName: EditText
+    private lateinit var assistantPanel: LinearLayout
+    private lateinit var assistantBubble: Button
+    private lateinit var assistantQuestion: EditText
+    private lateinit var assistantAnswer: TextView
+
+    private val panels = linkedMapOf<WorkspaceSection, View>()
 
     private val chooseApk = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             sourceUri = uri
             sourceName = queryName(uri) ?: "selected.apk"
             status.text = "Selected: $sourceName\nCreate Workspace to begin editing."
+            outputName.setText(sourceName.substringBeforeLast('.') + "_modified_unsigned.apk")
         }
     }
 
@@ -68,7 +120,7 @@ class ModifyFragment : Fragment() {
                     requireNotNull(out) { "Unable to open export destination." }
                     file.inputStream().use { it.copyTo(out) }
                 }
-                "Exported rebuilt unsigned APK.\nSign it with your own authorized signing identity before installation."
+                "Exported rebuilt unsigned APK. Sign it with your own authorized signing identity before installation."
             }
         }
     }
@@ -77,34 +129,98 @@ class ModifyFragment : Fragment() {
         inflater.inflate(R.layout.fragment_modify, container, false)
 
     override fun onViewCreated(view: View, state: Bundle?) {
-        status = view.findViewById(R.id.modifyStatus)
-        mutationLog = view.findViewById(R.id.modifyMutationLog)
-        entrySpinner = view.findViewById(R.id.modifyEntrySpinner)
-        textEditor = view.findViewById(R.id.modifyTextEditor)
-        versionName = view.findViewById(R.id.modifyVersionName)
-        versionCode = view.findViewById(R.id.modifyVersionCode)
-        appLabel = view.findViewById(R.id.modifyAppLabel)
+        bindViews(view)
+        bindSections(view)
+        bindWorkspaceActions(view)
+        bindManifestActions(view)
+        bindSearchActions(view)
+        bindConverterActions(view)
+        bindCodeTools(view)
+        bindDiffActions(view)
+        bindBuildActions(view)
+        bindAssistant(view)
+        bindHelpAndSuggestions(view)
 
         sourceUri = homeVm.selectedUri.value
         if (sourceUri != null) {
             sourceName = queryName(sourceUri!!) ?: "selected.apk"
             status.text = "Using Home selection: $sourceName"
+            outputName.setText(sourceName.substringBeforeLast('.') + "_modified_unsigned.apk")
         } else {
             status.text = "Choose an APK or select one from Home first."
         }
+        showSection(WorkspaceSection.FILES)
+    }
 
+    private fun bindViews(view: View) {
+        status = view.findViewById(R.id.modifyStatus)
+        mutationLog = view.findViewById(R.id.modifyMutationLog)
+        entrySpinner = view.findViewById(R.id.modifyEntrySpinner)
+        textEditor = view.findViewById(R.id.modifyTextEditor)
+        fileList = view.findViewById(R.id.modifyFileList)
+        versionName = view.findViewById(R.id.modifyVersionName)
+        versionCode = view.findViewById(R.id.modifyVersionCode)
+        appLabel = view.findViewById(R.id.modifyAppLabel)
+        manifestState = view.findViewById(R.id.manifestState)
+        searchQuery = view.findViewById(R.id.searchQuery)
+        searchScope = view.findViewById(R.id.searchScope)
+        searchResults = view.findViewById(R.id.searchResults)
+        converterInput = view.findViewById(R.id.converterInput)
+        converterType = view.findViewById(R.id.converterType)
+        converterOutput = view.findViewById(R.id.converterOutput)
+        languageInput = view.findViewById(R.id.languageInput)
+        languageSource = view.findViewById(R.id.languageSource)
+        languageTarget = view.findViewById(R.id.languageTarget)
+        languagePreserve = view.findViewById(R.id.languagePreserve)
+        languageOutput = view.findViewById(R.id.languageOutput)
+        smaliDescriptor = view.findViewById(R.id.smaliDescriptor)
+        smaliExplainInput = view.findViewById(R.id.smaliExplainInput)
+        smaliSnippet = view.findViewById(R.id.smaliSnippet)
+        smaliPreview = view.findViewById(R.id.smaliPreview)
+        diffOutput = view.findViewById(R.id.diffOutput)
+        buildOutput = view.findViewById(R.id.buildOutput)
+        outputName = view.findViewById(R.id.outputName)
+        assistantPanel = view.findViewById(R.id.assistantPanel)
+        assistantBubble = view.findViewById(R.id.assistantBubble)
+        assistantQuestion = view.findViewById(R.id.assistantQuestion)
+        assistantAnswer = view.findViewById(R.id.assistantAnswer)
+
+        searchScope.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, SearchScope.values().map { it.name })
+        converterType.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, listOf("Auto", "Decimal", "Hex", "Binary", "Octal", "Base64", "Text"))
+        languageSource.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, MlKitLanguageTranslator.supportedNames)
+        languageTarget.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, MlKitLanguageTranslator.supportedNames.filterNot { it == "Auto" })
+        languageTarget.setSelection(MlKitLanguageTranslator.supportedNames.filterNot { it == "Auto" }.indexOf("Malay").coerceAtLeast(0))
+        smaliSnippet.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, SmaliQuickCode.catalog.map { "${it.category} • ${it.title}" })
+    }
+
+    private fun bindSections(view: View) {
+        panels[WorkspaceSection.FILES] = view.findViewById(R.id.panelFiles)
+        panels[WorkspaceSection.MANIFEST] = view.findViewById(R.id.panelManifest)
+        panels[WorkspaceSection.SEARCH] = view.findViewById(R.id.panelSearch)
+        panels[WorkspaceSection.CONVERTER] = view.findViewById(R.id.panelConverter)
+        panels[WorkspaceSection.CODE_TOOLS] = view.findViewById(R.id.panelCodeTools)
+        panels[WorkspaceSection.DIFF] = view.findViewById(R.id.panelDiff)
+        panels[WorkspaceSection.BUILD] = view.findViewById(R.id.panelBuild)
+        mapOf(
+            R.id.tabFiles to WorkspaceSection.FILES,
+            R.id.tabManifest to WorkspaceSection.MANIFEST,
+            R.id.tabSearch to WorkspaceSection.SEARCH,
+            R.id.tabConverter to WorkspaceSection.CONVERTER,
+            R.id.tabCodeTools to WorkspaceSection.CODE_TOOLS,
+            R.id.tabDiff to WorkspaceSection.DIFF,
+            R.id.tabBuild to WorkspaceSection.BUILD
+        ).forEach { (id, section) -> view.findViewById<Button>(id).setOnClickListener { showSection(section) } }
+    }
+
+    private fun bindWorkspaceActions(view: View) {
         view.findViewById<Button>(R.id.modifyChooseApk).setOnClickListener {
             chooseApk.launch(arrayOf("application/vnd.android.package-archive", "application/zip", "*/*"))
         }
-
         view.findViewById<Button>(R.id.modifyCreateWorkspace).setOnClickListener {
             val uri = sourceUri
-            if (uri == null) {
-                status.text = "Choose an APK first."
-                return@setOnClickListener
-            }
+            if (uri == null) { status.text = "Choose an APK first."; return@setOnClickListener }
             runIo("Creating isolated workspace…") {
-                val workspace = File(requireContext().cacheDir, "modify_workspace")
+                val workspace = File(requireContext().cacheDir, "modify_workspace_v84")
                 val newEngine = ApkWorkspaceEngine(workspace)
                 requireContext().contentResolver.openInputStream(uri).use { input ->
                     requireNotNull(input) { "Unable to open APK." }
@@ -112,122 +228,410 @@ class ModifyFragment : Fragment() {
                 }
                 engine = newEngine
                 rebuiltFile = null
-                withContext(Dispatchers.Main) { refreshEntries() }
                 "Workspace ready. Original APK remains unchanged."
             }
         }
-
         view.findViewById<Button>(R.id.modifyLoadText).setOnClickListener {
             val path = selectedPath() ?: return@setOnClickListener
             runIo("Loading $path…") {
-                val text = requireEngine().readText(path)
-                withContext(Dispatchers.Main) { textEditor.setText(text) }
-                "Loaded plaintext entry: $path"
+                val entry = requireEngine().allEntries(sourceName).firstOrNull { it.path == path }
+                    ?: error("Entry not found.")
+                if (entry.textEditable) {
+                    val text = requireEngine().readText(path)
+                    withContext(Dispatchers.Main) { textEditor.setText(text) }
+                    "Loaded editable plaintext: $path"
+                } else {
+                    val bytes = requireEngine().readEntryBytes(path)
+                    val message = if (bytes == null) "Preview unavailable or entry exceeds preview limit." else "Read-only/binary entry: $path (${bytes.size} bytes). Use Analyze/Search for static evidence."
+                    withContext(Dispatchers.Main) { textEditor.setText("") }
+                    message
+                }
             }
         }
-
         view.findViewById<Button>(R.id.modifySaveText).setOnClickListener {
             val path = selectedPath() ?: return@setOnClickListener
             val text = textEditor.text.toString()
             runIo("Saving $path…") {
                 requireEngine().writeText(path, text)
-                withContext(Dispatchers.Main) { refreshEntries() }
                 "Saved plaintext entry: $path"
             }
         }
-
         view.findViewById<Button>(R.id.modifyReplaceFile).setOnClickListener {
             val path = selectedPath() ?: return@setOnClickListener
-            if (path == "AndroidManifest.xml") {
-                status.text = "Use Manifest Metadata for AndroidManifest.xml."
+            val entry = engine?.allEntries(sourceName)?.firstOrNull { it.path == path }
+            if (entry?.editable != true || path == "AndroidManifest.xml") {
+                status.text = "Selected entry is protected/LIMITED or requires the Manifest panel."
                 return@setOnClickListener
             }
             pendingReplacePath = path
             chooseReplacement.launch(arrayOf("*/*"))
         }
+        view.findViewById<Button>(R.id.modifyBack).setOnClickListener { parentFragmentManager.popBackStack() }
+    }
 
+    private fun bindManifestActions(view: View) {
         view.findViewById<Button>(R.id.modifyManifestApply).setOnClickListener {
             val name = versionName.text.toString().trim().ifBlank { null }
-            val code = versionCode.text.toString().trim().toLongOrNull()
+            val codeRaw = versionCode.text.toString().trim()
+            val code = if (codeRaw.isBlank()) null else codeRaw.toLongOrNull()
+            if (codeRaw.isNotBlank() && (code == null || code < 0)) { status.text = "versionCode must be a non-negative integer."; return@setOnClickListener }
             val label = appLabel.text.toString().trim().ifBlank { null }
-            runIo("Updating plaintext manifest metadata…") {
-                val message = requireEngine().updatePlaintextManifest(name, code, label)
-                withContext(Dispatchers.Main) { refreshEntries() }
-                message
+            AlertDialog.Builder(requireContext())
+                .setTitle("Apply plaintext manifest changes?")
+                .setMessage("versionName=${name ?: "unchanged"}\nversionCode=${code ?: "unchanged"}\nappLabel=${label ?: "unchanged"}\n\nBinary AXML remains LIMITED.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Apply") { _, _ ->
+                    runIo("Updating plaintext manifest metadata…") {
+                        requireEngine().updatePlaintextManifest(name, code, label)
+                    }
+                }.show()
+        }
+    }
+
+    private fun bindSearchActions(view: View) {
+        view.findViewById<Button>(R.id.searchPathButton).setOnClickListener { runPathSearch() }
+        view.findViewById<Button>(R.id.searchContentButton).setOnClickListener { runContentSearch() }
+        view.findViewById<Button>(R.id.searchOpenFirst).setOnClickListener {
+            val path = lastSearchHits.firstOrNull()?.path
+            if (path == null) status.text = "No search result to open." else {
+                selectEntry(path); showSection(WorkspaceSection.FILES); status.text = "Selected from search: $path"
             }
         }
+    }
 
+    private fun bindConverterActions(view: View) {
+        view.findViewById<Button>(R.id.converterRun).setOnClickListener {
+            val raw = converterInput.text.toString()
+            val forced = when (converterType.selectedItemPosition) {
+                1 -> DetectedInputType.DECIMAL
+                2 -> DetectedInputType.HEX
+                3 -> DetectedInputType.BINARY
+                4 -> DetectedInputType.OCTAL
+                5 -> DetectedInputType.BASE64
+                6 -> DetectedInputType.TEXT
+                else -> null
+            }
+            val result = runCatching { DataConverter.convert(raw, forced) }
+            converterOutput.text = result.fold(onSuccess = { formatConversion(it) }, onFailure = { "Conversion error: ${it.message}" })
+        }
+        view.findViewById<Button>(R.id.converterCopy).setOnClickListener { copyText("conversion", converterOutput.text.toString()) }
+        view.findViewById<Button>(R.id.converterInsert).setOnClickListener { insertAtCursor(converterOutput.text.toString()) }
+        view.findViewById<Button>(R.id.converterSearch).setOnClickListener {
+            searchQuery.setText(converterInput.text.toString())
+            showSection(WorkspaceSection.SEARCH)
+            runContentSearch()
+        }
+        view.findViewById<Button>(R.id.languageTranslate).setOnClickListener {
+            val request = LanguageRequest(
+                text = languageInput.text.toString(),
+                sourceLanguage = languageSource.selectedItem?.toString() ?: "Auto",
+                targetLanguage = languageTarget.selectedItem?.toString() ?: "Malay",
+                preserveFormat = languagePreserve.isChecked
+            )
+            status.text = "Preparing language conversion…"
+            translator.translate(request, onStatus = { message -> if (isAdded) status.text = message }) { result ->
+                if (!isAdded) return@translate
+                requireActivity().runOnUiThread {
+                    languageOutput.text = result.fold(onSuccess = { it }, onFailure = { "Translation error: ${it.message}" })
+                    status.text = if (result.isSuccess) "Translation complete. Review before inserting/applying." else "Translation failed."
+                }
+            }
+        }
+        view.findViewById<Button>(R.id.languageCopy).setOnClickListener { copyText("translation", languageOutput.text.toString()) }
+        view.findViewById<Button>(R.id.languageInsert).setOnClickListener { insertAtCursor(languageOutput.text.toString()) }
+    }
+
+    private fun bindCodeTools(view: View) {
+        view.findViewById<Button>(R.id.smaliSuggestReturn).setOnClickListener {
+            val suggestion = SmaliQuickCode.suggestReturn(smaliDescriptor.text.toString())
+            val snippet = suggestion.snippet
+            if (snippet == null) smaliPreview.text = suggestion.reason else {
+                val index = SmaliQuickCode.catalog.indexOfFirst { it.id == snippet.id }
+                if (index >= 0) smaliSnippet.setSelection(index)
+                smaliPreview.text = formatSnippet(snippet.code, snippet.explanation, snippet.registers, suggestion.reason)
+            }
+        }
+        view.findViewById<Button>(R.id.smaliExplain).setOnClickListener {
+            val snippet = SmaliQuickCode.catalog.getOrNull(smaliSnippet.selectedItemPosition)
+            val line = smaliExplainInput.text.toString().trim().ifBlank { snippet?.code.orEmpty() }
+            smaliPreview.text = formatSnippet(snippet?.code.orEmpty(), SmaliQuickCode.explain(line), snippet?.registers ?: "n/a", "Preview only until Insert is pressed.")
+        }
+        view.findViewById<Button>(R.id.smaliInsert).setOnClickListener {
+            val snippet = SmaliQuickCode.catalog.getOrNull(smaliSnippet.selectedItemPosition)
+            if (snippet == null) status.text = "Choose a snippet first." else {
+                insertAtCursor(snippet.code)
+                status.text = "Snippet inserted into text editor scratchpad. It is not applied to DEX/native code automatically."
+            }
+        }
+    }
+
+    private fun bindDiffActions(view: View) {
+        view.findViewById<Button>(R.id.diffRefresh).setOnClickListener { refreshDiff() }
         view.findViewById<Button>(R.id.modifyUndo).setOnClickListener {
-            runIo("Undoing last mutation…") {
-                val undone = requireEngine().undoLast()
-                withContext(Dispatchers.Main) { refreshEntries() }
-                if (undone) "Last mutation restored." else "Nothing to undo."
-            }
+            runIo("Undoing last mutation…") { if (requireEngine().undoLast()) "Last mutation restored." else "Nothing to undo." }
         }
+        view.findViewById<Button>(R.id.diffUndoSelected).setOnClickListener {
+            val path = selectedPath() ?: return@setOnClickListener
+            runIo("Undoing latest change for $path…") { if (requireEngine().undoLatestForPath(path)) "Restored latest change for $path." else "No mutation found for $path." }
+        }
+    }
 
+    private fun bindBuildActions(view: View) {
+        view.findViewById<Button>(R.id.buildValidate).setOnClickListener { refreshPreflight() }
         view.findViewById<Button>(R.id.modifyRebuild).setOnClickListener {
+            val e = engine
+            val report = BuildPreflight.check(e?.isReady() == true, e?.allEntries(sourceName)?.size ?: 0, e?.mutationCount() ?: 0)
+            refreshPreflight(report)
+            if (!report.ready) { status.text = "Build blocked by preflight."; return@setOnClickListener }
+            val requestedName = safeOutputName(outputName.text.toString())
             runIo("Rebuilding modified APK archive…") {
-                val output = File(requireContext().cacheDir, "MSAPatcher_modified_unsigned.apk")
+                val output = File(requireContext().cacheDir, requestedName)
                 rebuiltFile = requireEngine().rebuild(output)
                 "Rebuild complete: ${output.name}\nUnsigned by design. Original APK was not overwritten."
             }
         }
-
         view.findViewById<Button>(R.id.modifyExport).setOnClickListener {
             val file = rebuiltFile
-            if (file == null || !file.isFile) {
-                status.text = "Rebuild the APK before export."
-            } else {
-                exportApk.launch("MSAPatcher_modified_unsigned.apk")
-            }
-        }
-
-        view.findViewById<Button>(R.id.modifyBack).setOnClickListener {
-            parentFragmentManager.popBackStack()
+            if (file == null || !file.isFile) status.text = "Rebuild the APK before export." else exportApk.launch(safeOutputName(outputName.text.toString()))
         }
     }
 
-    private fun selectedPath(): String? {
-        val value = entrySpinner.selectedItem?.toString()
-        if (value.isNullOrBlank()) {
-            status.text = "Create a workspace and select an editable entry first."
-            return null
+    private fun bindAssistant(view: View) {
+        view.findViewById<Button>(R.id.assistantClose).setOnClickListener { assistantPanel.visibility = View.GONE }
+        view.findViewById<Button>(R.id.assistantSend).setOnClickListener { sendAssistantQuestion() }
+        view.findViewById<Button>(R.id.assistantConvert).setOnClickListener {
+            assistantQuestion.setText("convert ${converterInput.text}")
+            sendAssistantQuestion()
         }
-        return value.substringBefore("  •  ")
+        view.findViewById<Button>(R.id.assistantSearch).setOnClickListener {
+            val value = assistantQuestion.text.toString().trim().ifBlank { converterInput.text.toString().trim() }
+            searchQuery.setText(value)
+            assistantPanel.visibility = View.GONE
+            showSection(WorkspaceSection.SEARCH)
+            runContentSearch()
+        }
+        var downX = 0f; var downY = 0f; var startTx = 0f; var startTy = 0f; var moved = false
+        assistantBubble.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.rawX; downY = event.rawY; startTx = v.translationX; startTy = v.translationY; moved = false; true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - downX; val dy = event.rawY - downY
+                    if (kotlin.math.abs(dx) > 8 || kotlin.math.abs(dy) > 8) moved = true
+                    v.translationX = startTx + dx; v.translationY = startTy + dy; true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (!moved) assistantPanel.visibility = if (assistantPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun bindHelpAndSuggestions(view: View) {
+        view.findViewById<Button>(R.id.helpSearch).setOnClickListener { showHelp("search", searchQuery) }
+        view.findViewById<Button>(R.id.helpVersionName).setOnClickListener { showHelp("versionName", versionName) }
+        view.findViewById<Button>(R.id.helpVersionCode).setOnClickListener { showHelp("versionCode", versionCode) }
+        view.findViewById<Button>(R.id.helpAppLabel).setOnClickListener { showHelp("appLabel", appLabel) }
+        view.findViewById<Button>(R.id.helpConverter).setOnClickListener { showHelp("converter", converterInput) }
+        view.findViewById<Button>(R.id.helpLanguage).setOnClickListener { showHelp("language", languageInput) }
+        view.findViewById<Button>(R.id.helpSmali).setOnClickListener { showHelp("smali", smaliDescriptor) }
+        view.findViewById<Button>(R.id.helpOutputName).setOnClickListener { showHelp("outputName", outputName) }
+
+        view.findViewById<Button>(R.id.suggestSearch).setOnClickListener { applySuggestion("search", searchQuery) }
+        view.findViewById<Button>(R.id.suggestVersionName).setOnClickListener { applySuggestion("versionName", versionName) }
+        view.findViewById<Button>(R.id.suggestVersionCode).setOnClickListener { applySuggestion("versionCode", versionCode) }
+        view.findViewById<Button>(R.id.suggestAppLabel).setOnClickListener { applySuggestion("appLabel", appLabel) }
+        view.findViewById<Button>(R.id.suggestConverter).setOnClickListener { applySuggestion("converter", converterInput) }
+        view.findViewById<Button>(R.id.suggestLanguage).setOnClickListener { applySuggestion("language", languageInput) }
+        view.findViewById<Button>(R.id.suggestSmali).setOnClickListener { applySuggestion("smali", smaliDescriptor) }
+        view.findViewById<Button>(R.id.suggestOutputName).setOnClickListener { applySuggestion("outputName", outputName) }
+    }
+
+    private fun showSection(section: WorkspaceSection) {
+        panels.forEach { (key, panel) -> panel.visibility = if (key == section) View.VISIBLE else View.GONE }
+        when (section) {
+            WorkspaceSection.DIFF -> refreshDiff()
+            WorkspaceSection.BUILD -> refreshPreflight()
+            WorkspaceSection.MANIFEST -> refreshManifest()
+            else -> Unit
+        }
+    }
+
+    private fun runPathSearch() {
+        val e = engine ?: run { searchResults.text = "Create workspace first."; return }
+        val entries = e.allEntries(sourceName).map { SearchEntry(it.path, it.size, it.editable, it.textEditable) }
+        lastSearchHits = WorkspaceSearch.searchPaths(entries, searchQuery.text.toString(), selectedScope())
+        renderSearchHits()
+    }
+
+    private fun runContentSearch() {
+        val e = engine ?: run { searchResults.text = "Create workspace first."; return }
+        val entries = e.allEntries(sourceName).map { SearchEntry(it.path, it.size, it.editable, it.textEditable) }
+        lastSearchHits = WorkspaceSearch.searchContent(entries, searchQuery.text.toString(), selectedScope()) { path, max -> e.readEntryBytes(path, max) }
+        renderSearchHits()
+    }
+
+    private fun renderSearchHits() {
+        searchResults.text = if (lastSearchHits.isEmpty()) "No matches." else lastSearchHits.take(100).mapIndexed { index, hit ->
+            "${index + 1}. [${hit.kind}] ${hit.path}\n   matches=${hit.matchCount} • ${if (hit.textEditable) "EDITABLE TEXT" else if (hit.editable) "REPLACEABLE" else "READ-ONLY"}\n   ${hit.context}"
+        }.joinToString("\n\n") + if (lastSearchHits.size > 100) "\n\n… ${lastSearchHits.size - 100} more result(s) not displayed." else ""
+        status.text = "Search complete: ${lastSearchHits.size} result(s)."
+    }
+
+    private fun selectedScope(): SearchScope = SearchScope.values().getOrElse(searchScope.selectedItemPosition) { SearchScope.ALL }
+
+    private fun refreshAll() {
+        refreshEntries(); refreshManifest(); refreshDiff(); refreshPreflight()
     }
 
     private fun refreshEntries() {
         val e = engine ?: return
-        val editable = e.editableEntries(sourceName)
-        val labels = editable.map {
-            buildString {
-                append(it.path)
-                append("  •  ")
-                append(if (it.textEditable) "TEXT" else "FILE")
-                append("  •  ")
-                append(it.size)
-                append(" B")
+        val entries = e.allEntries(sourceName)
+        entryPaths = entries.map { it.path }
+        val labels = entries.map { entry ->
+            val state = when {
+                entry.textEditable -> "TEXT"
+                entry.editable -> "FILE"
+                else -> "READ-ONLY"
             }
+            "${entry.path}  •  $state  •  ${entry.size} B"
         }
-        entrySpinner.adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_dropdown_item,
-            labels
-        )
+        entrySpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, labels)
+        fileList.text = entries.take(160).joinToString("\n") { entry ->
+            val state = when { entry.textEditable -> "EDIT"; entry.editable -> "REPLACE"; else -> "RO" }
+            "[$state] ${entry.path} (${entry.size} B)"
+        } + if (entries.size > 160) "\n… ${entries.size - 160} more entries. Use Search for exact files." else ""
         mutationLog.text = e.mutationLog().ifEmpty { listOf("No modifications yet.") }.joinToString("\n")
     }
 
-    private fun requireEngine(): ApkWorkspaceEngine =
-        requireNotNull(engine) { "Create Workspace first." }
+    private fun refreshManifest() {
+        val e = engine ?: run { manifestState.text = "Create workspace first."; return }
+        val meta = runCatching { e.manifestMetadata() }.getOrNull()
+        if (meta == null || !meta.plaintext) {
+            manifestState.text = "LIMITED: AndroidManifest.xml is binary AXML or unavailable. Static analysis remains readable; arbitrary binary manifest rewrite is not claimed."
+            return
+        }
+        manifestState.text = "EDITABLE plaintext manifest. Current values loaded below."
+        if (!versionName.hasFocus()) versionName.setText(meta.versionName.orEmpty())
+        if (!versionCode.hasFocus()) versionCode.setText(meta.versionCode?.toString().orEmpty())
+        if (!appLabel.hasFocus()) appLabel.setText(meta.appLabel.orEmpty())
+    }
+
+    private fun refreshDiff() {
+        val diffs = engine?.diffEntries().orEmpty()
+        diffOutput.text = if (diffs.isEmpty()) "No modifications yet." else diffs.joinToString("\n\n") { d ->
+            "${d.operation}: ${d.path}\n${d.beforeSize} B → ${d.afterSize} B • ${d.validationState}\n${d.preview}"
+        }
+    }
+
+    private fun refreshPreflight(reportOverride: com.msa.patcher.modify.build.PreflightReport? = null) {
+        val e = engine
+        val report = reportOverride ?: BuildPreflight.check(e?.isReady() == true, e?.allEntries(sourceName)?.size ?: 0, e?.mutationCount() ?: 0)
+        buildOutput.text = buildString {
+            append(report.summary)
+            if (report.errors.isNotEmpty()) append("\nErrors:\n").append(report.errors.joinToString("\n") { "• $it" })
+            if (report.warnings.isNotEmpty()) append("\nWarnings:\n").append(report.warnings.joinToString("\n") { "• $it" })
+        }
+    }
+
+    private fun showHelp(id: String, target: EditText?) {
+        val spec = FieldHelp.get(id) ?: return
+        AlertDialog.Builder(requireContext())
+            .setTitle(spec.title)
+            .setMessage("${spec.description}\n\n${spec.example}")
+            .setNegativeButton("Close", null)
+            .setPositiveButton("Insert Example") { _, _ ->
+                target?.setText(spec.example.substringAfter("Example:", spec.example).trim())
+                target?.setSelection(target.text.length)
+            }.show()
+    }
+
+    private fun applySuggestion(fieldId: String, target: EditText) {
+        val meta = engine?.let { runCatching { it.manifestMetadata() }.getOrNull() }
+        val ctx = SuggestionContext(sourceName, meta?.versionName, meta?.versionCode, meta?.appLabel, selectedPathSilently(), textEditor.text.toString().take(2000))
+        val suggestions = WorkspaceSuggestions.forField(fieldId, ctx)
+        if (suggestions.isEmpty()) { status.text = "No suggestion available for this field."; return }
+        val labels = suggestions.map { "${it.value} — ${it.reason}" }.toTypedArray()
+        AlertDialog.Builder(requireContext()).setTitle("Auto Suggest").setItems(labels) { _, which ->
+            target.setText(suggestions[which].value); target.setSelection(target.text.length)
+            status.text = "Suggestion inserted only. Press Apply/Save when ready."
+        }.show()
+    }
+
+    private fun sendAssistantQuestion() {
+        val question = assistantQuestion.text.toString().trim()
+        if (question.isBlank()) { assistantAnswer.text = "Enter a question first."; return }
+        assistantAnswer.text = LocalAssistant.answer(question, currentAssistantContext())
+    }
+
+    private fun currentAssistantContext(): AssistantContext = AssistantContext(
+        sourceName = sourceName,
+        selectedPath = selectedPathSilently(),
+        selectedText = textEditor.text.toString().take(2000),
+        searchQuery = searchQuery.text.toString().takeIf { it.isNotBlank() },
+        converterValue = converterInput.text.toString().takeIf { it.isNotBlank() },
+        buildError = buildOutput.text.toString().takeIf { it.contains("BLOCKED", true) || it.contains("error", true) }
+    )
+
+    private fun formatConversion(r: com.msa.patcher.modify.converter.ConversionResult): String = listOfNotNull(
+        r.decimal?.let { "Decimal: $it" },
+        r.hexadecimal?.let { "Hex: $it" },
+        r.binary?.let { "Binary: $it" },
+        r.octal?.let { "Octal: $it" },
+        r.text?.let { "Text: $it" },
+        r.base64?.let { "Base64: $it" },
+        r.hexBytes?.let { "Hex bytes: $it" },
+        r.urlEncoded?.let { "URL encoded: $it" },
+        r.bigEndianHex?.let { "Big-endian hex: $it" },
+        r.littleEndianHex?.let { "Little-endian hex: $it" },
+        r.note.takeIf { it.isNotBlank() }?.let { "Note: $it" }
+    ).joinToString("\n")
+
+    private fun formatSnippet(code: String, explanation: String, registers: String, reason: String): String =
+        "Snippet:\n$code\n\nRegisters: $registers\nExplanation: $explanation\n$reason"
+
+    private fun copyText(label: String, text: String) {
+        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
+        status.text = "Copied $label to clipboard."
+    }
+
+    private fun insertAtCursor(value: String) {
+        val start = textEditor.selectionStart.coerceAtLeast(0)
+        textEditor.text.insert(start, if (start > 0 && textEditor.text.getOrNull(start - 1) != '\n') "\n$value" else value)
+        showSection(WorkspaceSection.FILES)
+    }
+
+    private fun selectEntry(path: String) {
+        val index = entryPaths.indexOf(path)
+        if (index >= 0) entrySpinner.setSelection(index)
+    }
+
+    private fun selectedPath(): String? {
+        val path = selectedPathSilently()
+        if (path == null) status.text = "Create a workspace and select an entry first."
+        return path
+    }
+
+    private fun selectedPathSilently(): String? = entryPaths.getOrNull(entrySpinner.selectedItemPosition)
+
+    private fun safeOutputName(raw: String): String {
+        val base = raw.trim().ifBlank { sourceName.substringBeforeLast('.') + "_modified_unsigned.apk" }
+            .replace('/', '_').replace('\\', '_')
+        return if (base.endsWith(".apk", true)) base else "$base.apk"
+    }
+
+    private fun requireEngine(): ApkWorkspaceEngine = requireNotNull(engine) { "Create Workspace first." }
 
     private fun runIo(start: String, block: suspend () -> String) {
         status.text = start
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = runCatching {
-                withContext(Dispatchers.IO) { block() }
-            }
+            val result = runCatching { withContext(Dispatchers.IO) { block() } }
             status.text = result.getOrElse { "Error: ${it.message ?: it.javaClass.simpleName}" }
-            if (result.isSuccess) refreshEntries()
+            if (result.isSuccess) refreshAll()
         }
     }
 

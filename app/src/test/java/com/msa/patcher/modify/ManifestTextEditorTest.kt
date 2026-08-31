@@ -13,11 +13,21 @@ class ManifestTextEditorTest {
         assertTrue(result.text.contains("""android:label="New Demo""""))
     }
 
+    @Test fun inspectsDirectPlaintextMetadata() {
+        val xml = """<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="7" android:versionName="7.1"><application android:label="Demo"></application></manifest>"""
+        val metadata = ManifestTextEditor.inspect(xml.toByteArray())
+        assertTrue(metadata.plaintext)
+        assertEquals("7.1", metadata.versionName)
+        assertEquals(7L, metadata.versionCode)
+        assertEquals("Demo", metadata.appLabel)
+    }
+
     @Test fun refusesResourceReferenceLabelRewrite() {
         val xml = """<manifest><application android:label="@string/app_name"></application></manifest>"""
         val result = ManifestTextEditor.update(xml, appLabel = "New")
         assertFalse(result.changed)
         assertTrue(result.text.contains("@string/app_name"))
+        assertNull(ManifestTextEditor.inspect(xml.toByteArray()).appLabel)
     }
 
     @Test fun binaryLikeManifestIsNotPlaintext() {
