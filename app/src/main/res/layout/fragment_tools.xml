@@ -1,0 +1,14 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tools" android:textColor="@color/msa_text" android:textSize="22sp" android:textStyle="bold"/>
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Advanced utilities are kept away from the guided analysis flow." android:textColor="@color/msa_muted"/>
+  <com.google.android.material.card.MaterialCardView android:id="@+id/legacyCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp">
+   <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Legacy Tools" android:textColor="@color/msa_text" android:textStyle="bold" android:textSize="17sp"/>
+    <TextView android:id="@+id/legacyCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Loading…" android:textColor="@color/msa_muted" android:layout_marginTop="4dp"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Collapsed by default • not shown in Home or Analyze" android:textColor="@color/msa_primary" android:layout_marginTop="8dp"/>
+   </LinearLayout>
+  </com.google.android.material.card.MaterialCardView>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Settings\nAbout MSAPatcher V8.0\nBuilt-in bundle migration" android:textColor="@color/msa_text" android:lineSpacingExtra="10dp" android:padding="14dp"/>
+ </LinearLayout>
+</ScrollView>

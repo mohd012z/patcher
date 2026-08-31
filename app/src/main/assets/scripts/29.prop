@@ -1,0 +1,1 @@
+{"name":"11 PROTECTION | Patch Risk Check","src":"29.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 11 PROTECTION. Read-only pre-patch safety report. Measures multidex/smali size, native libraries, manifest components, reflection/dynamic loading and signature-check indicators. Writes MSAPatcher_RiskCheck.txt."}

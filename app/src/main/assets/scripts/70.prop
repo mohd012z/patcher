@@ -1,0 +1,1 @@
+{"name":"09 SIGNING & INTEGRITY | Key Inventory","src":"70.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Count key/certificate filenames and sensitivity without exposing private-key contents."}

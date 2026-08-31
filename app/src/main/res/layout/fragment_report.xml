@@ -1,0 +1,16 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Intelligence Report" android:textColor="@color/msa_text" android:textSize="22sp" android:textStyle="bold"/>
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dual confidence keeps scan coverage separate from runtime inference." android:textColor="@color/msa_muted"/>
+  <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp">
+   <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ANALYSIS COVERAGE" android:textColor="@color/msa_muted" android:textStyle="bold"/>
+    <ProgressBar style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="8dp" android:progress="0" android:layout_marginTop="8dp"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="BEHAVIOUR CONFIDENCE" android:textColor="@color/msa_muted" android:textStyle="bold" android:layout_marginTop="16dp"/>
+    <ProgressBar style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="8dp" android:progress="0" android:layout_marginTop="8dp"/>
+   </LinearLayout>
+  </com.google.android.material.card.MaterialCardView>
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Report sections" android:textColor="@color/msa_text" android:textStyle="bold" android:layout_marginTop="18dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Architecture\nHigh-confidence capabilities\nMedium findings\nRejected evidence\nTechnical inventory" android:textColor="@color/msa_text" android:lineSpacingExtra="8dp" android:paddingTop="8dp"/>
+ </LinearLayout>
+</ScrollView>

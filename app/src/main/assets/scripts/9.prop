@@ -1,0 +1,1 @@
+{"args":"","src":"9.sh","root":false,"name":"13 LEGACY TOOLS | AndResGuard","description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для обфускациии apk.\nПосле обфуса ресурсов на результирующий пакет применяется zipalign и подпись.\nПрименяется на файл apk."}

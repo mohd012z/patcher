@@ -1,0 +1,1 @@
+{"name":"13 LEGACY TOOLS | Disconnect","src":"18.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч удаления доступа к сети интернет из smali и AndroidManifest.xml.\nПрименяется на директорию с декомпилированным до smali и ресурсов приложением (проект)."}

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MSAPatcher</string>
+    <string name="app_subtitle">Android Intelligence Lab</string>
+    <string name="select_apk">Select APK</string>
+    <string name="quick_scan">Quick Scan</string>
+    <string name="deep_scan">Deep Scan</string>
+</resources>

@@ -1,0 +1,1 @@
+{"name":"09 SIGNING & INTEGRITY | Hook Payload Correlator","src":"77.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Correlates signature-themed DEX/SMALI/native payload filenames for defensive inventory."}

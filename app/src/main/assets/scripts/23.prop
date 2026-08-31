@@ -1,0 +1,1 @@
+{"name":"13 LEGACY TOOLS | AntiAnalytics","src":"23.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для отключения аналитики.\n\nПриложение должно быть декомпилировано до smali, для патча AndroidManifest.xml должны быть декомпилированы ресурсы.\n\nПрименяется на директорию проекта."}

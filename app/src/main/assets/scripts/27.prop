@@ -1,0 +1,1 @@
+{"name":"06 SDK & NETWORK | Ad SDK Audit","src":"27.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 06 SDK & NETWORK. Read-only audit for decompiled Android projects. Detects common advertising/mediation SDK families, ad formats and references without modifying the project. Writes MSAPatcher_AdAudit.txt in the project root."}

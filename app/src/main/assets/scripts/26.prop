@@ -1,0 +1,1 @@
+{"args":"","src":"26.sh","root":false,"name":"13 LEGACY TOOLS | TrashClasses","description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления неиспользуемых BuildConfig и R классов из smali.\nСкрипт попытается убрать вызовы класса, если он используется.\nПрименяется на папку проекта."}

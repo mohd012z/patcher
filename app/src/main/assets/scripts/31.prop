@@ -1,0 +1,1 @@
+{"name":"01 OVERVIEW | Direct APK Analyzer","src":"31.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 01 OVERVIEW. Analyzes an APK directly without decompiling or extracting the project. Reports DEX count, native libraries, signatures, common ad/analytics SDK markers, ad-format markers and embedded domains. Read-only."}

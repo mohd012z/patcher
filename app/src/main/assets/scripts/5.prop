@@ -1,0 +1,1 @@
+{"args":"","src":"5.sh","root":false,"name":"13 LEGACY TOOLS | UnArch","description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для разбивания multilib пакета приложения на пакеты под отдельные архитектуры устройств.\nК файлам на выходе будут применены zipalign и подпись v1+v2.\nПрименяется на файл apk. "}

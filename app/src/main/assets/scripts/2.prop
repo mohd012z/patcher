@@ -1,0 +1,1 @@
+{"name":"13 LEGACY TOOLS | Antilog","src":"2.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления вызовов \"android.util.Log\" (обращение к системному логу).\nПрименяется на директорию с декомпилированным до smali приложением (проект)."}

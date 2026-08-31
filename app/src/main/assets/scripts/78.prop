@@ -1,0 +1,1 @@
+{"name":"08 HOOK & RUNTIME | HiddenApi vs LSPosed Filter","src":"78.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 08 HOOK & RUNTIME. Separates LSPosed HiddenApiBypass library evidence from actual Xposed/LSPosed module evidence."}

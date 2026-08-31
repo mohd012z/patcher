@@ -1,0 +1,1 @@
+{"name":"09 SIGNING & INTEGRITY | Direct APK Build Verify","src":"34.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Validates an APK directly before/after authorized work: ZIP integrity, manifest/DEX presence, ABI inventory and signing-related entries. Does not modify the APK."}

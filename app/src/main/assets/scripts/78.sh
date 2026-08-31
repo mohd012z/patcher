@@ -1,0 +1,2 @@
+#!/system/bin/sh
+APK="$1"; [ -f "$APK" ] || exit 1; TMP="${TMPDIR:-$(dirname "$APK")}/msa72_hidden_$$"; unzip -p "$APK" 'classes*.dex' 2>/dev/null|strings > "$TMP"; h=$(grep -Eic 'org/lsposed/hiddenapibypass|HiddenApiBypass' "$TMP"); x=$(grep -Eic 'XposedBridge|IXposedHookLoadPackage|xposed_init' "$TMP"); echo '=== HIDDEN API vs MODULE ==='; echo "HiddenApiBypass refs: $h"; echo "Core Xposed/module refs: $x"; [ "$h" -gt 0 ] && [ "$x" -eq 0 ] && echo 'Classification: HiddenApiBypass library; LSPosed module NOT confirmed.'; rm -f "$TMP"

@@ -1,0 +1,12 @@
+<resources>
+    <color name="msa_bg">#0F131B</color>
+    <color name="msa_surface">#171D28</color>
+    <color name="msa_primary">#7FB1FF</color>
+    <color name="msa_primary_container">#203B65</color>
+    <color name="msa_text">#F2F4F7</color>
+    <color name="msa_muted">#A5ADBA</color>
+    <color name="msa_ok">#4FD18B</color>
+    <color name="msa_warn">#F6B94D</color>
+    <color name="msa_risk">#FF7A70</color>
+    <color name="msa_arch">#B69BFF</color>
+</resources>

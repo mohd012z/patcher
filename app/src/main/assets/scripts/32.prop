@@ -1,0 +1,1 @@
+{"name":"11 PROTECTION | Direct APK Risk Check","src":"32.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 11 PROTECTION. Read-only direct APK safety check. Detects multidex, native code, dynamic loading/reflection markers, WebView/Javascript bridges, signature/integrity markers and protected/packed indicators without decompiling the APK."}

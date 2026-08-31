@@ -1,0 +1,30 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dashboard" android:textColor="@color/msa_text" android:textSize="22sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Select an APK, then let MSAPatcher guide the analysis flow." android:textColor="@color/msa_muted" android:layout_marginBottom="14dp"/>
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="18dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
+                <TextView android:id="@+id/apkName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📦 No APK selected" android:textColor="@color/msa_text" android:textStyle="bold" android:textSize="17sp"/>
+                <TextView android:id="@+id/apkMeta" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tap Select APK to begin." android:textColor="@color/msa_muted" android:layout_marginTop="6dp"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/selectApkButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Select APK" android:layout_marginTop="14dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/quickScanButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="⚡ Quick Scan" android:enabled="false"/>
+            <Space android:layout_width="10dp" android:layout_height="1dp"/>
+            <com.google.android.material.button.MaterialButton android:id="@+id/deepScanButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🔬 Deep Scan" android:enabled="false"/>
+        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Analysis Status" android:textColor="@color/msa_text" android:textStyle="bold" android:textSize="16sp" android:layout_marginTop="20dp"/>
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <TextView android:id="@+id/architectureText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Architecture  —" android:textColor="@color/msa_text"/>
+                <TextView android:id="@+id/inventoryText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DEX —   Native —   ABI —" android:textColor="@color/msa_muted" android:layout_marginTop="8dp"/>
+                <TextView android:id="@+id/confidenceText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Coverage —   Behaviour —" android:textColor="@color/msa_muted" android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Capabilities" android:textColor="@color/msa_text" android:textStyle="bold" android:textSize="16sp" android:layout_marginTop="20dp"/>
+        <TextView android:id="@+id/capabilityText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DEX   NATIVE   SDK   NETWORK\nROOT   HOOK   SIGN   MEMORY   PROTECT" android:textColor="@color/msa_primary" android:textSize="15sp" android:lineSpacingExtra="8dp" android:padding="12dp"/>
+    </LinearLayout>
+</ScrollView>

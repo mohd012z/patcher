@@ -1,0 +1,1 @@
+{"name":"06 SDK & NETWORK | Network Domain Audit","src":"28.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 06 SDK & NETWORK. Read-only domain and endpoint inventory for decompiled Android projects. Classifies likely advertising, analytics/attribution and application/API endpoints. Writes MSAPatcher_NetworkAudit.txt."}

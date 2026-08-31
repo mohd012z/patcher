@@ -1,0 +1,2 @@
+#!/system/bin/sh
+APK="$1"; [ -f "$APK" ] || exit 1; echo '=== NATIVE PURPOSE HINTS ==='; unzip -l "$APK" 2>/dev/null|awk '$NF ~ /\.so$/ {n=tolower($NF); cat="GENERAL"; if(n ~ /hook|lsplant|dobby|xhook/)cat="HOOK"; else if(n ~ /flutter|app\.so/)cat="AOT/RUNTIME"; else if(n ~ /protect|shell|secneo/)cat="PROTECTION?"; else if(n ~ /png|jpeg|gif|ffmpeg/)cat="MEDIA/IMAGE"; else if(n ~ /zstd|lz4|zip/)cat="COMPRESSION"; printf "%-12s %s\n",cat,$NF}'

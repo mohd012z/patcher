@@ -1,0 +1,1 @@
+{"name":"13 LEGACY TOOLS | CrashLogger","src":"19.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для добавления логгера падений. Лог сохраняется при падении в «/внутренняя_память/Android/data/package_name/files/app_crash_*.txt».\n\nПриложение должно быть декомпилировано до ресурсов и smali.\nПрименяется на директорию проекта."}

@@ -1,0 +1,2 @@
+#!/system/bin/sh
+APK="$1"; [ -f "$APK" ] || exit 1; L="$(unzip -l "$APK" 2>/dev/null)"; echo '=== RESOURCE COMPILER READINESS ==='; echo "$L"|grep -q ' resources.arsc$'&&echo 'resources.arsc: YES'||echo 'resources.arsc: NO'; echo "XML entries: $(echo "$L"|grep -Ec '\.xml$')"; echo "Resource entries: $(echo "$L"|grep -Ec ' res/')"; echo "Embedded AAPT/AAPT2: $(echo "$L"|grep -Eic '(^|/)(aapt2?)( |$)|_aapt2?')"

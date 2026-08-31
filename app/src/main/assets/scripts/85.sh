@@ -1,0 +1,2 @@
+#!/system/bin/sh
+APK="$1"; [ -f "$APK" ] || exit 1; T="${TMPDIR:-$(dirname "$APK")}/msa72_rootmode_$$"; unzip -p "$APK" 'classes*.dex' 2>/dev/null|strings > "$T"; echo '=== ROOT MODE CLASSIFIER ==='; r=$(grep -Eic '/system/(x)?bin/su|need_root|is_device_rooted|tryRoot' "$T"); n=$(grep -Eic 'work_without_root|no_root|noroot|virtual_space|vspace' "$T"); echo "Root evidence: $r"; echo "Non-root/virtual evidence: $n"; [ "$r" -gt 0 ]&&[ "$n" -gt 0 ]&&echo 'Class: ROOT-CAPABLE + NON-ROOT MODES'; rm -f "$T"

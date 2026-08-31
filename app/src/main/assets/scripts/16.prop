@@ -1,0 +1,1 @@
+{"name":"13 LEGACY TOOLS | SignatureKiller","src":"16.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч проверки подписи (метод Bin'а).\nПриложение должно быть декомпилировано до ресурсов и smali.\nПодпись до декомпиляции должна быть оригинальной!\nПрименяется на директорию проекта."}

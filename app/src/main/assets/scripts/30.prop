@@ -1,0 +1,1 @@
+{"name":"12 REPORT & EVIDENCE | Project Snapshot","src":"30.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Creates a timestamped rollback snapshot of important decompiled-project files before manual changes. It does not patch application logic."}

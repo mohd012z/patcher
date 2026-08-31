@@ -1,0 +1,1 @@
+{"name":"07 ROOT & VIRTUALIZATION | Root vs Non-Root Modes","src":"85.sh","args":"","root":false,"description":"MSAPatcher 7.4 • 07 ROOT & VIRTUALIZATION. Separates root capability evidence from explicit non-root/virtual-space modes."}

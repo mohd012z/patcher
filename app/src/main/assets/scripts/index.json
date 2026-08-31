@@ -1,0 +1,797 @@
+{
+  "bundleVersion": 80,
+  "scripts": [
+    {
+      "id": "1",
+      "title": ".Example script",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Пример самого простого скрипта.\nСодержит обращение к встроенным утилитам, что полезно для понимания общего принципа взаимодействия скрипта и приложения.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "1.sh"
+    },
+    {
+      "id": "2",
+      "title": "Antilog",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления вызовов \"android.util.Log\" (обращение к системному логу).\nПрименяется на директорию с декомпилированным до smali приложением (проект).",
+      "mode": "file",
+      "builtIn": true,
+      "src": "2.sh"
+    },
+    {
+      "id": "3",
+      "title": "DrawableClean",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления дубликатов графики.\nВ отличии от аналогов захватывает 'mipmap' директории, делает проход по всем DPI, удаляет не только png-файлы, но и jpg, webp, gif плюс некоторые xml.\nПринимает аргументы в соответствии к существующим стандартам разрешений:\n  l\n  m\n  h\n  xh\n  xxh\n  xxxh\n\nПрименяется на директорию с декомпилированным до ресурсов приложением (проект).",
+      "mode": "file",
+      "builtIn": true,
+      "src": "3.sh"
+    },
+    {
+      "id": "4",
+      "title": "DelLang",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления всех языковых пакетов в приложении, кроме основного \"values\" и языков, обозначенных в переменной \"lang_leave\".\nПрименяется на директорию с декомпилированным до ресурсов приложением (проект).",
+      "mode": "file",
+      "builtIn": true,
+      "src": "4.sh"
+    },
+    {
+      "id": "5",
+      "title": "UnArch",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для разбивания multilib пакета приложения на пакеты под отдельные архитектуры устройств.\nК файлам на выходе будут применены zipalign и подпись v1+v2.\nПрименяется на файл apk. ",
+      "mode": "file",
+      "builtIn": true,
+      "src": "5.sh"
+    },
+    {
+      "id": "6",
+      "title": "Apksigner",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Быстрая подпись v1+v2 любых zip файлов.\nПеред подписью применяется zipalign.\nПатч применяется на файл.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "6.sh"
+    },
+    {
+      "id": "7",
+      "title": ".Compression level check",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Скрипт проверки уровня сжатия файлов внутри zip-архивов.\nВажную информацию выводит на экран.\nСоздаёт очень подробный файл-отчёт рядом с проверяемым файлом, если запускается с аргументом 'log'.\nПрименяется на файлы.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "7.sh"
+    },
+    {
+      "id": "9",
+      "title": "AndResGuard",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для обфускациии apk.\nПосле обфуса ресурсов на результирующий пакет применяется zipalign и подпись.\nПрименяется на файл apk.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "9.sh"
+    },
+    {
+      "id": "10",
+      "title": ".Add binary",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Скрипт для добавления в директорию \"bin\" MSAPatcher'а новых исполняемых файлов.\nДобавление возможно только из файлов формата установщика MSAPatcher!\nВнимание!\nЕсли файлы уже существуют - будет произведена замена!\nПрименяется на файл.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "10.sh"
+    },
+    {
+      "id": "12",
+      "title": ".My sign",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Выбор пользовательских файлов подписи для использования во встроенных скриптах приложения.\nВыбранная подпись заменит releasekey в папке ключей приложения.\nЭто не изменит ключ подписи для скриптов, которые не используют встроенный в пакет releasekey.\nПатч применяется на файл \".x509.pem\" или \".pk8\". Файл \".pk8\" или \".x509.pem\" (соответственно) должен находиться рядом.\nДля сброса releasekey к исходному состоянию запустите этот скрипт с аргументом \"reset\".",
+      "mode": "file",
+      "builtIn": true,
+      "src": "12.sh"
+    },
+    {
+      "id": "13",
+      "title": "Clone hard",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для клонирования приложений \"старым\" методом.\nЗаменяет текущее название пакета в \".xml\", \".so\" и \".smali\" на то, которое указано в аргументе.\nЕсли не указать новое название пакета - патч сгенерирует произвольное, заменив последний символ в текущем названии пакета.\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "13.sh"
+    },
+    {
+      "id": "14",
+      "title": "RemoveFuckingAds",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для отключения рекламы в приложениях.\nПоддерживает список правил. Отредактировать его можно в файле \"rules.txt\", который находится внутри \"RemoveFuckingAds.jar\".\nПриложение должно быть декомпилировано до ресурсов и smali.\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "14.sh"
+    },
+    {
+      "id": "15",
+      "title": "UniString",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для перевода строк в smali, которые имеют вид\nconst-string v0, \"\\u0068\\u0069\\u0021\"\nв понятный человеку\nconst-string v0, \"hi!\"\nПеревод добавляется в виде комментария\n# UniString:    const-string v0, \"hi!\"\nПатч применяется на папку проекта, декомпилированного до smali.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "15.sh"
+    },
+    {
+      "id": "16",
+      "title": "SignatureKiller",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч проверки подписи (метод Bin'а).\nПриложение должно быть декомпилировано до ресурсов и smali.\nПодпись до декомпиляции должна быть оригинальной!\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "16.sh"
+    },
+    {
+      "id": "17",
+      "title": "PngOptimizer",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для компрессии графики в формате png.\nПрименяется на директорию, которая содержит файлы формата png.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "17.sh"
+    },
+    {
+      "id": "18",
+      "title": "Disconnect",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч удаления доступа к сети интернет из smali и AndroidManifest.xml.\nПрименяется на директорию с декомпилированным до smali и ресурсов приложением (проект).",
+      "mode": "file",
+      "builtIn": true,
+      "src": "18.sh"
+    },
+    {
+      "id": "19",
+      "title": "CrashLogger",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для добавления логгера падений. Лог сохраняется при падении в «/внутренняя_память/Android/data/package_name/files/app_crash_*.txt».\n\nПриложение должно быть декомпилировано до ресурсов и smali.\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "19.sh"
+    },
+    {
+      "id": "20",
+      "title": "AddIdComments",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для добавления комментария вида «@type/name» к id ресурсов в smali. В зависимости от размера приложения патч может работать довольно долго.\n\nПриложение должно быть декомпилировано до ресурсов и smali.\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "20.sh"
+    },
+    {
+      "id": "21",
+      "title": "DefLang",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч, который заменит базовый язык приложения из /values/(arrays|plurals|strings).xml языком, файлы которого находятся в директории /values-[a-z][a-z].\nПрименять на директорию проекта, содержащую необходимый язык.\nФайлы для замены будут сгенерированы в директории /values и иметь расширение .xml_out",
+      "mode": "file",
+      "builtIn": true,
+      "src": "21.sh"
+    },
+    {
+      "id": "22",
+      "title": "DummyAway",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления \"APKTOOL_DUMMY\" и/или \"dummy_ae\" из xml файлов ресурсов приложения.\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "22.sh"
+    },
+    {
+      "id": "23",
+      "title": "AntiAnalytics",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для отключения аналитики.\n\nПриложение должно быть декомпилировано до smali, для патча AndroidManifest.xml должны быть декомпилированы ресурсы.\n\nПрименяется на директорию проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "23.sh"
+    },
+    {
+      "id": "24",
+      "title": "StringStub",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления содержимого '<string name=\"#some_name#\"' по списку.\nЭто удалит строки с таким именем (в примере выше \"#some_name#\" из всех файлов локализаций (values-*), кроме основой (values).\nВ файле основной локализации содержимое строки станет пустым. \nНеобходимо создать файл 'stringstub.txt' со списком названий удаляемых строк в корневой директории проекта (на одном уровне с директорией \"res\").\nПатч поддерживает неявное обозначение названия строк через символ \"*\".\nПример содержимого файла \"stringstub.txt\":\n\"common_google_1\ncommon_google_2\napi_key\n\"\nЕсли нужно удалить все строки, название которых содержит \"common_google\", содержимое файла \"stringstub.txt\" будет выглядеть так:\n\"common_google*\n\"\nПосле создания файла \"stringstub.txt\" просто применить патч на директорию проекта, разобранного до ресурсов.\n*Google Translate изменяет регистр символов некоторых слов на верхний и добавляет пробелы там, где их не должно быть! Все примеры выше, включая название файла-списка, написаны и ожидаются патчем в нижнем регистре!",
+      "mode": "file",
+      "builtIn": true,
+      "src": "24.sh"
+    },
+    {
+      "id": "25",
+      "title": "DebugInfo",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для добавления отладочной информации в smali. Применяется на папку проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "25.sh"
+    },
+    {
+      "id": "26",
+      "title": "TrashClasses",
+      "category": "13 LEGACY TOOLS",
+      "description": "MSAPatcher 7.4 • 13 LEGACY TOOLS. Патч для удаления неиспользуемых BuildConfig и R классов из smali.\nСкрипт попытается убрать вызовы класса, если он используется.\nПрименяется на папку проекта.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "26.sh"
+    },
+    {
+      "id": "27",
+      "title": "Ad SDK Audit",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Read-only audit for decompiled Android projects. Detects common advertising/mediation SDK families, ad formats and references without modifying the project. Writes MSAPatcher_AdAudit.txt in the project root.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "27.sh"
+    },
+    {
+      "id": "28",
+      "title": "Network Domain Audit",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Read-only domain and endpoint inventory for decompiled Android projects. Classifies likely advertising, analytics/attribution and application/API endpoints. Writes MSAPatcher_NetworkAudit.txt.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "28.sh"
+    },
+    {
+      "id": "29",
+      "title": "Patch Risk Check",
+      "category": "11 PROTECTION",
+      "description": "MSAPatcher 7.4 • 11 PROTECTION. Read-only pre-patch safety report. Measures multidex/smali size, native libraries, manifest components, reflection/dynamic loading and signature-check indicators. Writes MSAPatcher_RiskCheck.txt.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "29.sh"
+    },
+    {
+      "id": "30",
+      "title": "Project Snapshot",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Creates a timestamped rollback snapshot of important decompiled-project files before manual changes. It does not patch application logic.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "30.sh"
+    },
+    {
+      "id": "31",
+      "title": "Direct APK Analyzer",
+      "category": "01 OVERVIEW",
+      "description": "MSAPatcher 7.4 • 01 OVERVIEW. Analyzes an APK directly without decompiling or extracting the project. Reports DEX count, native libraries, signatures, common ad/analytics SDK markers, ad-format markers and embedded domains. Read-only.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "31.sh"
+    },
+    {
+      "id": "32",
+      "title": "Direct APK Risk Check",
+      "category": "11 PROTECTION",
+      "description": "MSAPatcher 7.4 • 11 PROTECTION. Read-only direct APK safety check. Detects multidex, native code, dynamic loading/reflection markers, WebView/Javascript bridges, signature/integrity markers and protected/packed indicators without decompiling the APK.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "32.sh"
+    },
+    {
+      "id": "33",
+      "title": "Direct APK Snapshot",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Creates a byte-for-byte backup of the selected APK before any authorized modification. No decompile or extraction is performed.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "33.sh"
+    },
+    {
+      "id": "34",
+      "title": "Direct APK Build Verify",
+      "category": "09 SIGNING & INTEGRITY",
+      "description": "MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Validates an APK directly before/after authorized work: ZIP integrity, manifest/DEX presence, ABI inventory and signing-related entries. Does not modify the APK.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "34.sh"
+    },
+    {
+      "id": "35",
+      "title": "Detection Confidence Engine",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Read-only Low/Mid/High confidence analysis combining package, API/string, domain and resource evidence. Warns when protection may hide code.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "35.sh"
+    },
+    {
+      "id": "36",
+      "title": "Protection & Packer Audit",
+      "category": "11 PROTECTION",
+      "description": "MSAPatcher 7.4 • 11 PROTECTION. Read-only protection-aware scan for Jiagu, PairIP, stub loaders, dynamic DEX loading and integrity markers. Reports visibility; does not bypass protection.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "36.sh"
+    },
+    {
+      "id": "37",
+      "title": "Native ELF Inventory",
+      "category": "04 NATIVE & JNI",
+      "description": "MSAPatcher 7.4 • 04 NATIVE & JNI. Read-only ABI/native-library inventory with notable security, bridge, disassembler and monitoring library names.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "37.sh"
+    },
+    {
+      "id": "38",
+      "title": "Large APK Streaming Check",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Read-only large-APK readiness check using ZIP metadata and selective streaming instead of full extraction.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "38.sh"
+    },
+    {
+      "id": "39",
+      "title": "Analysis Confidence Dashboard (Legacy)",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Legacy V7 static-confidence view. Prefer module 46 Dual Confidence Dashboard for V7.1.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "39.sh"
+    },
+    {
+      "id": "40",
+      "title": "SDK Fingerprint Matrix",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Read-only direct APK analysis module. Select an APK file as input.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "40.sh"
+    },
+    {
+      "id": "41",
+      "title": "DEX & Native Inventory",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Read-only direct APK analysis module. Select an APK file as input.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "41.sh"
+    },
+    {
+      "id": "42",
+      "title": "Domain Intelligence",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Read-only direct APK analysis module. Select an APK file as input.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "42.sh"
+    },
+    {
+      "id": "43",
+      "title": "Large APK Streaming Check",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Read-only direct APK analysis module. Select an APK file as input.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "43.sh"
+    },
+    {
+      "id": "44",
+      "title": "Architecture Classifier",
+      "category": "01 OVERVIEW",
+      "description": "MSAPatcher 7.4 • 01 OVERVIEW. Identify the APK architecture first, then route analysis to the most relevant engines.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "44.sh"
+    },
+    {
+      "id": "45",
+      "title": "Evidence Correlation",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Correlate DEX, asset, native and domain evidence into weak, medium and strong findings.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "45.sh"
+    },
+    {
+      "id": "46",
+      "title": "Dual Confidence",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Separate static analysis coverage from confidence about actual runtime behaviour.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "46.sh"
+    },
+    {
+      "id": "47",
+      "title": "Embedded Inventory",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Inventory embedded APK, DEX, JAR and ZIP payloads without executing them.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "47.sh"
+    },
+    {
+      "id": "48",
+      "title": "Embedded Hook Analyzer",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. Identify embedded hook payloads and framework evidence without executing injection instructions.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "48.sh"
+    },
+    {
+      "id": "49",
+      "title": "Extreme Multidex",
+      "category": "03 DEX & CODE",
+      "description": "MSAPatcher 7.4 • 03 DEX & CODE. Profile very large multidex layouts and distinguish dependency-heavy APKs from concealment hints.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "49.sh"
+    },
+    {
+      "id": "50",
+      "title": "Decompiler Profiler",
+      "category": "03 DEX & CODE",
+      "description": "MSAPatcher 7.4 • 03 DEX & CODE. Fingerprint JADX, dexlib2, smali, baksmali and source-export/decompiler engines.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "50.sh"
+    },
+    {
+      "id": "51",
+      "title": "Domain Origin Filter",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Separate app endpoints from schema, documentation, library, analytics and advertising domains.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "51.sh"
+    },
+    {
+      "id": "52",
+      "title": "Flutter Detector",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Detect Flutter, libapp/libflutter and Dart AOT visibility limits.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "52.sh"
+    },
+    {
+      "id": "53",
+      "title": "JNI Mapper",
+      "category": "04 NATIVE & JNI",
+      "description": "MSAPatcher 7.4 • 04 NATIVE & JNI. Inventory JNI naming, RegisterNatives and native-method evidence without executing code.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "53.sh"
+    },
+    {
+      "id": "54",
+      "title": "Signature Surface",
+      "category": "09 SIGNING & INTEGRITY",
+      "description": "MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Inventory APK signature-scheme, lineage, source-stamp and signing-material filenames.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "54.sh"
+    },
+    {
+      "id": "55",
+      "title": "Split APK Analyzer",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Detect base/split APK indicators and split-handling capability.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "55.sh"
+    },
+    {
+      "id": "56",
+      "title": "ARSC / Resource Analyzer",
+      "category": "05 RESOURCES & BUILD",
+      "description": "MSAPatcher 7.4 • 05 RESOURCES & BUILD. Profile resources.arsc, binary XML and Android resource tooling.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "56.sh"
+    },
+    {
+      "id": "57",
+      "title": "Native Hook Detector",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. Detect LSPlant, Dobby, SandHook and native hook/unhook evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "57.sh"
+    },
+    {
+      "id": "58",
+      "title": "Runtime Manipulation",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. Find ART, ArtMethod, JIT, ClassLinker, deoptimization and DEX-trust evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "58.sh"
+    },
+    {
+      "id": "59",
+      "title": "LSPlant / Dobby",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. High-confidence LSPlant and Dobby implementation fingerprinting.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "59.sh"
+    },
+    {
+      "id": "60",
+      "title": "Nested APK Scanner",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Recursively inventory nested APK containers and their basic static metadata.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "60.sh"
+    },
+    {
+      "id": "61",
+      "title": "Embedded Web-App",
+      "category": "02 APK STRUCTURE",
+      "description": "MSAPatcher 7.4 • 02 APK STRUCTURE. Inventory bundled HTML, JavaScript and CSS applications.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "61.sh"
+    },
+    {
+      "id": "62",
+      "title": "DEX-JNI Correlator",
+      "category": "04 NATIVE & JNI",
+      "description": "MSAPatcher 7.4 • 04 NATIVE & JNI. Correlate Java native/loadLibrary references with JNI/native evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "62.sh"
+    },
+    {
+      "id": "63",
+      "title": "Component Profiler",
+      "category": "11 PROTECTION",
+      "description": "MSAPatcher 7.4 • 11 PROTECTION. Classify packer/protection candidates separately from normal native libraries and AOT frameworks.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "63.sh"
+    },
+    {
+      "id": "64",
+      "title": "Capability Profiler",
+      "category": "07 ROOT & VIRTUALIZATION",
+      "description": "MSAPatcher 7.4 • 07 ROOT & VIRTUALIZATION. Separate root detection, root commands and root-framework integration.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "64.sh"
+    },
+    {
+      "id": "65",
+      "title": "Magisk / Zygisk",
+      "category": "07 ROOT & VIRTUALIZATION",
+      "description": "MSAPatcher 7.4 • 07 ROOT & VIRTUALIZATION. Detect Magisk and Zygisk environment/module evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "65.sh"
+    },
+    {
+      "id": "66",
+      "title": "Xposed Analyzer",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. Confirm xposed_init and core Xposed APIs while rejecting generic string false positives.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "66.sh"
+    },
+    {
+      "id": "67",
+      "title": "Dalvik / ODEX / OAT",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. Inventory Android runtime cache and compiled-code format awareness.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "67.sh"
+    },
+    {
+      "id": "68",
+      "title": "Hosts / Proxy Surface",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Detect hosts-file, proxy and network-filtering surfaces without changing network settings.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "68.sh"
+    },
+    {
+      "id": "69",
+      "title": "Billing / Licensing",
+      "category": "09 SIGNING & INTEGRITY",
+      "description": "MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Inventory Play Billing and licensing API surfaces for security analysis only.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "69.sh"
+    },
+    {
+      "id": "70",
+      "title": "Key Inventory",
+      "category": "09 SIGNING & INTEGRITY",
+      "description": "MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Count key/certificate filenames and sensitivity without exposing private-key contents.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "70.sh"
+    },
+    {
+      "id": "71",
+      "title": "3-Layer Correlator",
+      "category": "06 SDK & NETWORK",
+      "description": "MSAPatcher 7.4 • 06 SDK & NETWORK. Score SDK evidence with DEX + native + domain layers to reduce false positives.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "71.sh"
+    },
+    {
+      "id": "72",
+      "title": "Unified Intelligence",
+      "category": "01 OVERVIEW",
+      "description": "MSAPatcher 7.4 • 01 OVERVIEW. Compact architecture, evidence and capability summary for fast triage.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "72.sh"
+    },
+    {
+      "id": "73",
+      "title": "APK Toolchain Profiler",
+      "category": "05 RESOURCES & BUILD",
+      "description": "MSAPatcher 7.4 • 05 RESOURCES & BUILD. Profiles apktool, aapt/aapt2, zipalign, signing and build-engine evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "73.sh"
+    },
+    {
+      "id": "74",
+      "title": "AAPT / AAPT2 Detector",
+      "category": "05 RESOURCES & BUILD",
+      "description": "MSAPatcher 7.4 • 05 RESOURCES & BUILD. Detects embedded AAPT/AAPT2 binaries and compile-related evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "74.sh"
+    },
+    {
+      "id": "75",
+      "title": "Embedded API DEX Classifier",
+      "category": "03 DEX & CODE",
+      "description": "MSAPatcher 7.4 • 03 DEX & CODE. Classifies embedded DEX files separately from primary classes.dex.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "75.sh"
+    },
+    {
+      "id": "76",
+      "title": "Library Purpose Classifier",
+      "category": "04 NATIVE & JNI",
+      "description": "MSAPatcher 7.4 • 04 NATIVE & JNI. Groups native libraries into hook, media/image, compression, runtime/AOT, protection and general utility hints.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "76.sh"
+    },
+    {
+      "id": "77",
+      "title": "Hook Payload Correlator",
+      "category": "09 SIGNING & INTEGRITY",
+      "description": "MSAPatcher 7.4 • 09 SIGNING & INTEGRITY. Correlates signature-themed DEX/SMALI/native payload filenames for defensive inventory.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "77.sh"
+    },
+    {
+      "id": "78",
+      "title": "HiddenApi vs LSPosed Filter",
+      "category": "08 HOOK & RUNTIME",
+      "description": "MSAPatcher 7.4 • 08 HOOK & RUNTIME. Separates LSPosed HiddenApiBypass library evidence from actual Xposed/LSPosed module evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "78.sh"
+    },
+    {
+      "id": "79",
+      "title": "Decode / Rebuild Matrix",
+      "category": "05 RESOURCES & BUILD",
+      "description": "MSAPatcher 7.4 • 05 RESOURCES & BUILD. Scores static evidence for APK decode, rebuild, resource, DEX and signing toolchains.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "79.sh"
+    },
+    {
+      "id": "80",
+      "title": "Resource Compiler Readiness",
+      "category": "05 RESOURCES & BUILD",
+      "description": "MSAPatcher 7.4 • 05 RESOURCES & BUILD. Checks resources.arsc, binary XML/resource density and AAPT/AAPT2 evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "80.sh"
+    },
+    {
+      "id": "81",
+      "title": "Memory Capability Profiler",
+      "category": "10 MEMORY & PROCESS",
+      "description": "MSAPatcher 7.4 • 10 MEMORY & PROCESS. Detects memory-search/editor/range/pointer capability surfaces from static evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "81.sh"
+    },
+    {
+      "id": "82",
+      "title": "PROCFS Intelligence",
+      "category": "10 MEMORY & PROCESS",
+      "description": "MSAPatcher 7.4 • 10 MEMORY & PROCESS. Inventories procfs paths that reveal process/runtime visibility.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "82.sh"
+    },
+    {
+      "id": "83",
+      "title": "Lua / Scripting Engine",
+      "category": "10 MEMORY & PROCESS",
+      "description": "MSAPatcher 7.4 • 10 MEMORY & PROCESS. Detects Lua/LuaJ and embedded scripting APIs without running scripts.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "83.sh"
+    },
+    {
+      "id": "84",
+      "title": "Virtualization Analyzer",
+      "category": "07 ROOT & VIRTUALIZATION",
+      "description": "MSAPatcher 7.4 • 07 ROOT & VIRTUALIZATION. Detects VirtualApp/parallel-space and virtual-root environment evidence.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "84.sh"
+    },
+    {
+      "id": "85",
+      "title": "Root vs Non-Root Modes",
+      "category": "07 ROOT & VIRTUALIZATION",
+      "description": "MSAPatcher 7.4 • 07 ROOT & VIRTUALIZATION. Separates root capability evidence from explicit non-root/virtual-space modes.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "85.sh"
+    },
+    {
+      "id": "86",
+      "title": "Process-Control Surface",
+      "category": "10 MEMORY & PROCESS",
+      "description": "MSAPatcher 7.4 • 10 MEMORY & PROCESS. Inventories process pause/resume/kill/control API evidence without invoking it.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "86.sh"
+    },
+    {
+      "id": "87",
+      "title": "Daemon Architecture",
+      "category": "10 MEMORY & PROCESS",
+      "description": "MSAPatcher 7.4 • 10 MEMORY & PROCESS. Detects service/daemon/root-daemon/virtual-daemon architecture hints.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "87.sh"
+    },
+    {
+      "id": "88",
+      "title": "⚡ Quick APK Triage",
+      "category": "01 OVERVIEW",
+      "description": "MSAPatcher 7.4 • 01 OVERVIEW. Guided read-only intelligence workflow for a cleaner analysis experience.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "88.sh"
+    },
+    {
+      "id": "89",
+      "title": "🔬 Guided Deep Analysis",
+      "category": "01 OVERVIEW",
+      "description": "MSAPatcher 7.4 • 01 OVERVIEW. Guided read-only intelligence workflow for a cleaner analysis experience.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "89.sh"
+    },
+    {
+      "id": "90",
+      "title": "📊 Analysis Flow Summary",
+      "category": "12 REPORT & EVIDENCE",
+      "description": "MSAPatcher 7.4 • 12 REPORT & EVIDENCE. Guided read-only intelligence workflow for a cleaner analysis experience.",
+      "mode": "file",
+      "builtIn": true,
+      "src": "90.sh"
+    }
+  ]
+}
