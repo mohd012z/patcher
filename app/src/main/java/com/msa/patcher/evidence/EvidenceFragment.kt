@@ -12,20 +12,11 @@ import com.msa.patcher.home.HomeViewModel
 
 class EvidenceFragment : Fragment() {
     private val vm: HomeViewModel by activityViewModels()
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View =
-        inflater.inflate(R.layout.fragment_evidence, container, false)
-
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View = inflater.inflate(R.layout.fragment_evidence, container, false)
     override fun onViewCreated(view: View, state: Bundle?) {
         val evidenceText = view.findViewById<TextView>(R.id.evidenceText)
         vm.scanResult.observe(viewLifecycleOwner) { result ->
-            evidenceText.text = if (result == null) {
-                "No scan evidence yet. Run Quick Scan or Deep Scan from Home."
-            } else {
-                result.findings.joinToString("\n\n") {
-                    "[${it.confidence}] ${it.category}\n${it.title}\n${it.detail}"
-                }
-            }
+            evidenceText.text = if (result == null) "No scan evidence yet. Run Quick Scan or Deep Scan from Home." else EvidenceFormatter.format(result.findings)
         }
     }
 }
