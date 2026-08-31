@@ -25,7 +25,7 @@ import com.msa.patcher.R
 import com.msa.patcher.home.HomeViewModel
 import com.msa.patcher.modify.assistant.AssistantContext
 import com.msa.patcher.modify.assistant.LocalAssistant
-import com.msa.patcher.modify.build.BuildPreflight
+import com.msa.patcher.modify.preflight.BuildPreflight
 import com.msa.patcher.modify.code.SmaliQuickCode
 import com.msa.patcher.modify.converter.DataConverter
 import com.msa.patcher.modify.converter.DetectedInputType
@@ -527,7 +527,7 @@ class ModifyFragment : Fragment() {
         }
     }
 
-    private fun refreshPreflight(reportOverride: com.msa.patcher.modify.build.PreflightReport? = null) {
+    private fun refreshPreflight(reportOverride: com.msa.patcher.modify.preflight.PreflightReport? = null) {
         val e = engine
         val report = reportOverride ?: BuildPreflight.check(e?.isReady() == true, e?.allEntries(sourceName)?.size ?: 0, e?.mutationCount() ?: 0)
         buildOutput.text = buildString {
