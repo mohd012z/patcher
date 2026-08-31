@@ -43,6 +43,9 @@ import com.msa.patcher.modify.search.SearchEntry
 import com.msa.patcher.modify.search.SearchHit
 import com.msa.patcher.modify.search.SearchScope
 import com.msa.patcher.modify.search.WorkspaceSearch
+import com.msa.patcher.modify.search.PlaintextReplacePreview
+import com.msa.patcher.modify.search.ReplacePreviewResult
+import com.msa.patcher.modify.search.WorkspaceHistoryController
 import com.msa.patcher.modify.settings.ButtonSize
 import com.msa.patcher.modify.settings.SharedPreferencesSettingsBackend
 import com.msa.patcher.modify.settings.WorkspaceUiSettings
@@ -112,9 +115,11 @@ class ModifyFragment : Fragment() {
     private val commandHubController = CommandHubController()
     private val bottomToolbarController = BottomToolbarController()
     private val workspaceViewController = WorkspaceViewController()
+    private val historyController = WorkspaceHistoryController()
     private val zoomController = PerViewZoomController()
     private val zoomBaseSp = mutableMapOf<ZoomViewKey, Float>()
     private lateinit var zoomPrefs: android.content.SharedPreferences
+    private lateinit var workspaceStatePrefs: android.content.SharedPreferences
     private var rememberZoomPerView: Boolean = true
     private var currentViewMode = WorkspaceViewMode.FOCUS
     private var loadedSnapshotText: String = ""
@@ -126,6 +131,7 @@ class ModifyFragment : Fragment() {
         if (uri != null) {
             sourceUri = uri
             sourceName = queryName(uri) ?: "selected.apk"
+            if (::workspaceStatePrefs.isInitialized) restoreWorkspaceHistory()
             status.text = "Selected: $sourceName\nCreate Workspace to begin editing."
             outputName.setText(sourceName.substringBeforeLast('.') + "_modified_unsigned.apk")
         }
@@ -181,6 +187,7 @@ class ModifyFragment : Fragment() {
         sourceUri = homeVm.selectedUri.value
         if (sourceUri != null) {
             sourceName = queryName(sourceUri!!) ?: "selected.apk"
+            restoreWorkspaceHistory()
             status.text = "Using Home selection: $sourceName"
             outputName.setText(sourceName.substringBeforeLast('.') + "_modified_unsigned.apk")
         } else {
@@ -284,6 +291,7 @@ class ModifyFragment : Fragment() {
                         loadedSnapshotText = text
                         loadedSnapshotPath = path
                         renderLoadedSnapshot()
+                        recordRecent(path)
                     }
                     "Loaded editable plaintext: $path"
                 } else {
@@ -294,6 +302,7 @@ class ModifyFragment : Fragment() {
                         loadedSnapshotText = ""
                         loadedSnapshotPath = path
                         renderLoadedSnapshot()
+                        recordRecent(path)
                     }
                     message
                 }
@@ -341,11 +350,14 @@ class ModifyFragment : Fragment() {
 
     private fun bindSearchActions(view: View) {
         view.findViewById<Button>(R.id.searchPathButton).setOnClickListener { runPathSearch() }
-        view.findViewById<Button>(R.id.searchContentButton).setOnClickListener { runContentSearch() }
+        view.findViewById<Button>(R.id.searchContentButton).apply {
+            text = "Smart Search"
+            setOnClickListener { runSmartSearch() }
+        }
         view.findViewById<Button>(R.id.searchOpenFirst).setOnClickListener {
             val path = lastSearchHits.firstOrNull()?.path
             if (path == null) status.text = "No search result to open." else {
-                selectEntry(path); showSection(WorkspaceSection.FILES); status.text = "Selected from search: $path"
+                selectEntry(path); recordRecent(path); showSection(WorkspaceSection.FILES); status.text = "Selected from search: $path"
             }
         }
     }
@@ -507,6 +519,8 @@ class ModifyFragment : Fragment() {
         val settings = uiSettingsStore.load()
         applyCompactUi(view, settings)
         zoomPrefs = requireContext().getSharedPreferences("workspace_zoom_v85", Context.MODE_PRIVATE)
+        workspaceStatePrefs = requireContext().getSharedPreferences("workspace_history_v85", Context.MODE_PRIVATE)
+        restoreWorkspaceHistory()
         rememberZoomPerView = settings.rememberZoomPerView
 
         val root = view as? FrameLayout ?: return
@@ -796,11 +810,14 @@ class ModifyFragment : Fragment() {
         when (action) {
             CommandHubAction.OPEN_FILE -> showSection(WorkspaceSection.FILES)
             CommandHubAction.MANIFEST -> showSection(WorkspaceSection.MANIFEST)
-            CommandHubAction.SEARCH -> showSection(WorkspaceSection.SEARCH)
-            CommandHubAction.REPLACE -> {
-                showSection(WorkspaceSection.FILES)
-                status.text = "Select an existing replaceable resource/asset, then use Replace."
+            CommandHubAction.SEARCH -> {
+                showSection(WorkspaceSection.SEARCH)
+                searchQuery.requestFocus()
+                status.text = "Smart Search: path + bounded plaintext/static-string content search."
             }
+            CommandHubAction.REPLACE -> showPlaintextReplaceDialog()
+            CommandHubAction.RECENT -> showRecentDialog()
+            CommandHubAction.FAVORITES -> showFavoritesDialog()
             CommandHubAction.CONVERTER,
             CommandHubAction.LANGUAGE -> showSection(WorkspaceSection.CONVERTER)
             CommandHubAction.CODE -> showSection(WorkspaceSection.CODE_TOOLS)
@@ -810,8 +827,6 @@ class ModifyFragment : Fragment() {
                 assistantPanel.visibility = if (assistantPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
             }
             CommandHubAction.SETTINGS -> showUiSettingsSummary()
-            CommandHubAction.RECENT,
-            CommandHubAction.FAVORITES,
             CommandHubAction.CRYPTO,
             CommandHubAction.COLOR -> {
                 status.text = "${action.title} is staged for the next V8.5 milestone."
@@ -888,6 +903,179 @@ class ModifyFragment : Fragment() {
             "${index + 1}. [${hit.kind}] ${hit.path}\n   matches=${hit.matchCount} • ${if (hit.textEditable) "EDITABLE TEXT" else if (hit.editable) "REPLACEABLE" else "READ-ONLY"}\n   ${hit.context}"
         }.joinToString("\n\n") + if (lastSearchHits.size > 100) "\n\n… ${lastSearchHits.size - 100} more result(s) not displayed." else ""
         status.text = "Search complete: ${lastSearchHits.size} result(s)."
+    }
+
+    private fun runSmartSearch() {
+        val e = engine ?: run { searchResults.text = "Create workspace first."; return }
+        val query = searchQuery.text.toString().trim()
+        if (query.isEmpty()) {
+            searchResults.text = "Enter a search query first."
+            return
+        }
+        val entries = e.allEntries(sourceName).map { SearchEntry(it.path, it.size, it.editable, it.textEditable) }
+        val pathHits = WorkspaceSearch.searchPaths(entries, query, selectedScope())
+        val contentHits = WorkspaceSearch.searchContent(entries, query, selectedScope()) { path, max -> e.readEntryBytes(path, max) }
+        lastSearchHits = (pathHits + contentHits).distinctBy { "${it.kind}|${it.path}" }
+        renderSearchHits()
+        status.text = "Smart Search complete: ${lastSearchHits.size} result(s) across path + bounded content."
+    }
+
+    private fun historyKey(kind: String): String = "${kind}_${sourceName.hashCode()}"
+
+    private fun restoreWorkspaceHistory() {
+        if (!::workspaceStatePrefs.isInitialized) return
+        val separator = 0x1F.toChar()
+        fun decode(raw: String?): List<String> = raw.orEmpty().split(separator).filter { it.isNotBlank() }
+        historyController.restore(
+            recents = decode(workspaceStatePrefs.getString(historyKey("recent"), null)),
+            favorites = decode(workspaceStatePrefs.getString(historyKey("favorite"), null))
+        )
+    }
+
+    private fun persistWorkspaceHistory() {
+        if (!::workspaceStatePrefs.isInitialized) return
+        val separator = 0x1F.toChar().toString()
+        workspaceStatePrefs.edit()
+            .putString(historyKey("recent"), historyController.recent().joinToString(separator))
+            .putString(historyKey("favorite"), historyController.favorites().joinToString(separator))
+            .apply()
+    }
+
+    private fun recordRecent(path: String) {
+        historyController.addRecent(path)
+        persistWorkspaceHistory()
+    }
+
+    private fun showRecentDialog() {
+        val items = historyController.recent()
+        if (items.isEmpty()) {
+            status.text = "Recent files is empty. Open a workspace file first."
+            return
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Recent Files")
+            .setItems(items.toTypedArray()) { _, which -> openHistoryPath(items[which], "Recent") }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showFavoritesDialog() {
+        val current = selectedPathSilently()
+        val favorites = historyController.favorites()
+        val labels = mutableListOf<String>()
+        if (current != null) {
+            labels += if (historyController.isFavorite(current)) "Remove favorite: $current" else "Add favorite: $current"
+        }
+        labels += favorites.map { "* $it" }
+        if (labels.isEmpty()) {
+            status.text = "Favorites is empty. Select a file, then open Favorites to add it."
+            return
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Favorites")
+            .setItems(labels.toTypedArray()) { dialog, which ->
+                if (current != null && which == 0) {
+                    val added = historyController.toggleFavorite(current)
+                    persistWorkspaceHistory()
+                    status.text = if (added) "Added to Favorites: $current" else "Removed from Favorites: $current"
+                    dialog.dismiss()
+                } else {
+                    val index = which - if (current != null) 1 else 0
+                    favorites.getOrNull(index)?.let { openHistoryPath(it, "Favorite") }
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun openHistoryPath(path: String, source: String) {
+        if (!entryPaths.contains(path)) {
+            status.text = "$source entry is not present in the current APK: $path"
+            return
+        }
+        selectEntry(path)
+        recordRecent(path)
+        showSection(WorkspaceSection.FILES)
+        status.text = "$source selected: $path - press Load to open."
+    }
+
+    private fun showPlaintextReplaceDialog() {
+        val path = selectedPathSilently()
+        if (path == null) {
+            status.text = "Select a file before Replace."
+            return
+        }
+        val e = engine ?: run { status.text = "Create workspace first."; return }
+        val entry = e.allEntries(sourceName).firstOrNull { it.path == path }
+        if (entry?.textEditable != true) {
+            status.text = "Replace Preview is limited to editable plaintext files. DEX/native/binary entries remain read-only."
+            return
+        }
+
+        val findInput = EditText(requireContext()).apply { hint = "Find literal text" }
+        val replaceInput = EditText(requireContext()).apply { hint = "Replace with" }
+        val ignoreCase = CheckBox(requireContext()).apply { text = "Ignore case" }
+        val form = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(8), dp(18), 0)
+            addView(findInput)
+            addView(replaceInput)
+            addView(ignoreCase)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Plaintext Replace Preview")
+            .setMessage(path)
+            .setView(form)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Preview") { _, _ ->
+                val find = findInput.text.toString()
+                val replacement = replaceInput.text.toString()
+                val currentText = runCatching { e.readText(path) }.getOrElse {
+                    status.text = "Unable to read plaintext: ${it.message}"
+                    return@setPositiveButton
+                }
+                val preview = runCatching {
+                    PlaintextReplacePreview.build(currentText, find, replacement, ignoreCase.isChecked)
+                }.getOrElse {
+                    status.text = "Replace preview error: ${it.message}"
+                    return@setPositiveButton
+                }
+                showReplaceConfirmation(path, preview)
+            }
+            .show()
+    }
+
+    private fun showReplaceConfirmation(path: String, preview: ReplacePreviewResult) {
+        if (preview.matchCount == 0) {
+            status.text = "Replace Preview: no matches in $path."
+            return
+        }
+        val message = buildString {
+            append("Affected files: 1\nMatches: ${preview.matchCount}\n")
+            append("Mode: literal${if (preview.ignoreCase) ", ignore case" else ""}\n\n")
+            append("BEFORE\n").append(preview.beforePreview)
+            append("\n\nAFTER\n").append(preview.afterPreview)
+            append("\n\nApply writes only this editable plaintext file. Undo remains available from Diff/Undo.")
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Preview Replace - ${preview.matchCount} match(es)")
+            .setMessage(message)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Apply") { _, _ ->
+                if (!preview.changed) {
+                    status.text = "Replacement produces no byte/text change. Nothing applied."
+                    return@setPositiveButton
+                }
+                runIo("Applying replace preview to $path...") {
+                    requireEngine().writeText(path, preview.resultText)
+                    withContext(Dispatchers.Main) {
+                        if (loadedSnapshotPath == path) textEditor.setText(preview.resultText)
+                        recordRecent(path)
+                    }
+                    "Replace applied: ${preview.matchCount} match(es) in $path. Undo is available."
+                }
+            }
+            .show()
     }
 
     private fun selectedScope(): SearchScope = SearchScope.values().getOrElse(searchScope.selectedItemPosition) { SearchScope.ALL }
